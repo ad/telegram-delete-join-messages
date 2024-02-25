@@ -1,1 +1,1 @@
-## bot for deleting join messages in telegram
+## bot for deleting leave/join messages in telegram
