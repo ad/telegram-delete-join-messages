@@ -6,7 +6,7 @@ import (
 )
 
 func InitLogger(debugIsEnabled bool) *slog.Logger {
-	loglevel := slog.LevelError
+	loglevel := slog.LevelInfo
 	if debugIsEnabled {
 		loglevel = slog.LevelDebug
 	}
