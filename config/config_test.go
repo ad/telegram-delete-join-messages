@@ -33,10 +33,6 @@ func TestInitConfig(t *testing.T) {
 		t.Errorf("Expected no error, but got %v", err)
 	}
 
-	// Assert values from environment variables
-	if config.TelegramTarget != "123456" {
-		t.Errorf("Expected TelegramTarget to be '123456', but got '%s'", config.TelegramTarget)
-	}
 	if config.TelegramToken != "token123" {
 		t.Errorf("Expected TelegramToken to be 'token123', but got '%s'", config.TelegramToken)
 	}

@@ -59,7 +59,7 @@ func (s *Sender) handler(ctx context.Context, b *bot.Bot, update *bm.Update) {
 	}
 
 	if update.Message != nil && update.Message.NewChatMembers != nil {
-		s.lgr.Debug(fmt.Sprintf("Member joined %+v", update.Message.NewChatMembers))
+		s.lgr.Info(fmt.Sprintf("Member joined %+v", update.Message.NewChatMembers))
 
 		_, err := s.Bot.DeleteMessage(
 			context.Background(),
@@ -77,7 +77,7 @@ func (s *Sender) handler(ctx context.Context, b *bot.Bot, update *bm.Update) {
 	}
 
 	if update.Message != nil && update.Message.LeftChatMember != nil {
-		s.lgr.Debug(fmt.Sprintf("Member left %+v", update.Message.LeftChatMember))
+		s.lgr.Info(fmt.Sprintf("Member left %+v", update.Message.LeftChatMember))
 
 		_, err := s.Bot.DeleteMessage(
 			context.Background(),
