@@ -1,0 +1,42 @@
+{
+  "version": "0.0.1",
+  "name": "telegram-delete-join-messages",
+  "slug": "telegram-delete-join-messages",
+  "description": "",
+  "startup": "application",
+  "boot": "auto",
+  "image": "danielapatin/telegram-delete-join-messages",
+  "arch": [
+    "aarch64",
+    "amd64",
+    "armhf",
+    "armv7",
+    "i386"
+  ],
+  "webui": "http://[HOST]:[PORT:4444]/",
+  "panel_admin": true,
+  "panel_icon": "mdi:home-city-outline",
+  "panel_title": "telegram-delete-join-messages",
+  "ports": {
+    "4444/tcp": 4444
+  },
+  "ports_description": {
+    "4444/tcp": "Exposed port"
+  },
+  "hassio_api": true,
+  "hassio_role": "default",
+  "homeassistant_api": true,
+  "host_network": false,
+  "options": {
+    "TELEGRAM_TARGET": "-",
+    "TELEGRAM_TOKEN": "-",
+    "TELEGRAM_ADMIN_ID": "-",
+    "DEBUG": false
+  },
+  "schema": {
+    "TELEGRAM_TARGET": "str",
+    "TELEGRAM_TOKEN": "str",
+    "TELEGRAM_ADMIN_ID": "str",
+    "DEBUG": "bool"
+  }
+}

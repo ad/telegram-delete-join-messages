@@ -1,0 +1,41 @@
+package app
+
+import (
+	"context"
+	"io"
+	"os"
+
+	conf "github.com/ad/telegram-delete-join-messages/config"
+	"github.com/ad/telegram-delete-join-messages/logger"
+	sndr "github.com/ad/telegram-delete-join-messages/sender"
+)
+
+var (
+	config *conf.Config
+)
+
+func Run(ctx context.Context, w io.Writer, args []string) error {
+	confLoad, errInitConfig := conf.InitConfig(os.Args)
+	if errInitConfig != nil {
+		return errInitConfig
+	}
+
+	config = confLoad
+
+	lgr := logger.InitLogger(config.Debug)
+
+	sender, errInitSender := sndr.InitSender(lgr, config)
+	if errInitSender != nil {
+		return errInitSender
+	}
+
+	if config.TelegramAdminID != 0 {
+		sender.MakeRequestDeferred(sndr.DeferredMessage{
+			Method: "sendMessage",
+			ChatID: config.TelegramAdminID,
+			Text:   "Bot restarted",
+		}, sender.SendResult)
+	}
+
+	return nil
+}
