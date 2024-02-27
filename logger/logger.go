@@ -12,9 +12,10 @@ func InitLogger(debugIsEnabled bool) *slog.Logger {
 	}
 
 	lgr := slog.New(
-		slog.NewJSONHandler(
+		slog.NewTextHandler(
 			os.Stdout,
 			&slog.HandlerOptions{
+				// AddSource: true,
 				Level: loglevel,
 			},
 		),
