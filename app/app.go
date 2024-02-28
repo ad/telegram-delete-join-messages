@@ -2,8 +2,10 @@ package app
 
 import (
 	"context"
+	"fmt"
 	"io"
 	"os"
+	"runtime/debug"
 
 	conf "github.com/ad/telegram-delete-join-messages/config"
 	"github.com/ad/telegram-delete-join-messages/logger"
@@ -23,6 +25,13 @@ func Run(ctx context.Context, w io.Writer, args []string) error {
 	config = confLoad
 
 	lgr := logger.InitLogger(config.Debug)
+
+	// Recovery
+	defer func() {
+		if p := recover(); p != nil {
+			lgr.Error(fmt.Sprintf("panic recovered: %s; stack trace: %s", p, string(debug.Stack())))
+		}
+	}()
 
 	sender, errInitSender := sndr.InitSender(lgr, config)
 	if errInitSender != nil {
