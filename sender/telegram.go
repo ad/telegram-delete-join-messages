@@ -94,5 +94,5 @@ func (s *Sender) handler(ctx context.Context, b *bot.Bot, update *bm.Update) {
 		return
 	}
 
-	s.lgr.Debug(fmt.Sprintf("Message %#v, chat ID %d", update.Message, update.Message.Chat.ID))
+	s.lgr.Debug(fmt.Sprintf("Message %#v", update))
 }
