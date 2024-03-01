@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log/slog"
 	"sync"
+	"time"
 
 	conf "github.com/ad/telegram-delete-join-messages/config"
 	"github.com/go-telegram/bot"
@@ -58,7 +59,27 @@ func (s *Sender) handler(ctx context.Context, b *bot.Bot, update *bm.Update) {
 		}
 	}
 
-	if update.Message != nil && update.Message.NewChatMembers != nil {
+	if s.config.RestictOnJoin && update.Message != nil && update.Message.NewChatMembers != nil {
+		s.lgr.Debug(fmt.Sprintf("restrict users %#v", update.Message.NewChatMembers))
+		for _, member := range update.Message.NewChatMembers {
+			_, err := s.Bot.RestrictChatMember(
+				context.Background(),
+				&bot.RestrictChatMemberParams{
+					ChatID: update.Message.Chat.ID,
+					UserID: member.ID,
+					Permissions: &bm.ChatPermissions{
+						CanSendMessages: false,
+					},
+					UntilDate: int(time.Now().Add(time.Second * time.Duration(s.config.RestrictOnJoinTime)).Unix()),
+				},
+			)
+			if err != nil {
+				s.lgr.Error(fmt.Sprintf("Error restricting member %d: %s", member.ID, err.Error()))
+			}
+		}
+	}
+
+	if s.config.DeleteJoinMessages && update.Message != nil && update.Message.NewChatMembers != nil {
 		s.lgr.Info(fmt.Sprintf("Member joined %+v, chat ID %d", update.Message.NewChatMembers, update.Message.Chat.ID))
 
 		_, err := s.Bot.DeleteMessage(
@@ -76,7 +97,7 @@ func (s *Sender) handler(ctx context.Context, b *bot.Bot, update *bm.Update) {
 		return
 	}
 
-	if update.Message != nil && update.Message.LeftChatMember != nil {
+	if s.config.DeleteLeaveMessages && update.Message != nil && update.Message.LeftChatMember != nil {
 		s.lgr.Info(fmt.Sprintf("Member left %+v, chat ID %d", update.Message.LeftChatMember, update.Message.Chat.ID))
 
 		_, err := s.Bot.DeleteMessage(

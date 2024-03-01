@@ -20,11 +20,27 @@ type Config struct {
 
 	TelegramAdminID int64
 
+	DeleteJoinMessages  bool `json:"DELETE_JOIN"`
+	DeleteLeaveMessages bool `json:"DELETE_LEAVE"`
+
+	RestictOnJoin      bool `json:"RESTRICT_ON_JOIN"`
+	RestrictOnJoinTime int  `json:"RESTRICT_ON_JOIN_TIME"`
+
 	Debug bool `json:"DEBUG"`
 }
 
 func InitConfig(args []string) (*Config, error) {
 	var config = &Config{
+		TelegramToken:   "",
+		TelegramAdmin:   "",
+		TelegramAdminID: 0,
+
+		DeleteJoinMessages:  false,
+		DeleteLeaveMessages: false,
+
+		RestictOnJoin:      true,
+		RestrictOnJoinTime: 120,
+
 		Debug: false,
 	}
 
@@ -46,6 +62,12 @@ func InitConfig(args []string) (*Config, error) {
 		flags := flag.NewFlagSet(args[0], flag.ContinueOnError)
 		flags.StringVar(&config.TelegramToken, "telegramToken", lookupEnvOrString("TELEGRAM_TOKEN", config.TelegramToken), "TELEGRAM_TOKEN")
 		flags.StringVar(&config.TelegramAdmin, "telegramAdminID", lookupEnvOrString("TELEGRAM_ADMIN_ID", config.TelegramAdmin), "TELEGRAM_ADMIN_ID")
+
+		flags.BoolVar(&config.DeleteJoinMessages, "deleteJoin", lookupEnvOrBool("DELETE_JOIN", config.DeleteJoinMessages), "DELETE_JOIN")
+		flags.BoolVar(&config.DeleteLeaveMessages, "deleteLeave", lookupEnvOrBool("DELETE_LEAVE", config.DeleteLeaveMessages), "DELETE_LEAVE")
+
+		flags.BoolVar(&config.RestictOnJoin, "restrictOnJoin", lookupEnvOrBool("RESTRICT_ON_JOIN", config.RestictOnJoin), "RESTRICT_ON_JOIN")
+		flags.IntVar(&config.RestrictOnJoinTime, "restrictOnJoinTime", lookupEnvOrInt("RESTRICT_ON_JOIN_TIME", config.RestrictOnJoinTime), "RESTRICT_ON_JOIN_TIME")
 
 		flags.BoolVar(&config.Debug, "debug", lookupEnvOrBool("DEBUG", config.Debug), "Debug")
 
