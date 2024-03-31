@@ -14,22 +14,20 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - id: set_var
         run: |
           content=`cat ./config.json`
-          content="${content//'%'/'%25'}"
-          content="${content//$'\n'/'%0A'}"
-          content="${content//$'\r'/'%0D'}"
-          echo "packageJson=${content}" >> $GITHUB_OUTPUT
+          version=`echo $(jq -r '.version' <<< "$content")`
+          echo "version=${version}" >> $GITHUB_OUTPUT
+          echo "timestamp=$(date +%Y-%m-%dT%H:%M:%S)" >> $GITHUB_OUTPUT
       - name: Prepare
         id: prep
         run: |
           DOCKER_IMAGE=${{ secrets.DOCKER_USER }}/telegram-delete-join-messages
           SHORTREF=${GITHUB_SHA::8}
-          echo '${{fromJson(steps.set_var.outputs.packageJson).version}}'
-          BUILD_VERSION=${{fromJson(steps.set_var.outputs.packageJson).version}}
-          echo "BUILD_VERSION=${BUILD_VERSION}" >> $GITHUB_ENV
-          TAGS="${DOCKER_IMAGE}:${BUILD_VERSION},${DOCKER_IMAGE}:${SHORTREF},${DOCKER_IMAGE}:latest"
+          echo '${{steps.set_var.outputs.version}}'
+          TAGS="${DOCKER_IMAGE}:${{steps.set_var.outputs.version}},${DOCKER_IMAGE}:${SHORTREF},${DOCKER_IMAGE}:latest"
 
           # Set output parameters.
           echo "tags=${TAGS}" >> $GITHUB_OUTPUT
@@ -68,5 +66,5 @@ jobs:
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache
           build-args: |
-            BUILD_VERSION=${{ env.BUILD_VERSION }}
-            BUILD_TIMESTAMP=${{ env.BUILD_TIMESTAMP }}
+            BUILD_VERSION=${{steps.set_var.outputs.version}}
+            BUILD_TIMESTAMP=${{steps.set_var.outputs.timestamp}}
