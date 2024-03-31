@@ -18,7 +18,10 @@ jobs:
           content=`cat ./config.json`
           version=`echo $(jq -r '.version' <<< "$content")`
           echo "version=${version}" >> $GITHUB_OUTPUT
-          DOCKER_IMAGE=${{ secrets.DOCKER_USER }}/telegram-delete-join-messages
+          REPO_NAME=$(echo ${{ github.repository }})
+          repo_name=`basename ${{ github.repository }}`
+          echo "repo_name=${repo_name}" >> $GITHUB_OUTPUT
+          DOCKER_IMAGE="${{ secrets.DOCKER_USER }}/${repo_name}"
           echo "docker_image=${DOCKER_IMAGE}" >> $GITHUB_OUTPUT
 
       - name: Set up Docker Buildx
