@@ -38,8 +38,6 @@ jobs:
       - name: Build and deploy master image to dockerhub
         working-directory: .
         env:
-          DOCKER_IMAGE: ${{ secrets.DOCKER_USER }}/telegram-delete-join-messages
-          TAGS: "${{steps.set_var.outputs.docker_image}}:${{steps.set_var.outputs.version}},${{steps.set_var.outputs.docker_image}}:latest"
           GITHUB_SHA: ${{ github.sha}}
           GITHUB_REF: ${{ github.ref}}
         run: |
@@ -47,4 +45,4 @@ jobs:
           docker buildx build --push \
               --build-arg CI=github --build-arg GITHUB_SHA=${GITHUB_SHA} --build-arg GIT_BRANCH=${ref} \
               --platform linux/amd64,linux/arm64 \
-              -t ${TAGS} .
+              -t ${{steps.set_var.outputs.docker_image}}:${{steps.set_var.outputs.version}} -t ${{steps.set_var.outputs.docker_image}}:latest .
