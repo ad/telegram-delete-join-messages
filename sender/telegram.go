@@ -47,7 +47,7 @@ func InitSender(lgr *slog.Logger, config *conf.Config) (*Sender, error) {
 			// "edited_channel_post",
 			// "edited_message",
 			// "inline_query",
-			// "message",
+			"message",
 			// "message_reaction",
 			// "message_reaction_count",
 			"my_chat_member",

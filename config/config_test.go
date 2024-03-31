@@ -24,7 +24,6 @@ func TestInitConfig(t *testing.T) {
 	}
 
 	// Test case 3: When environment variables are provided
-	os.Setenv("TELEGRAM_TARGET", "123456")
 	os.Setenv("TELEGRAM_TOKEN", "token123")
 	os.Setenv("TELEGRAM_ADMIN_ID", "7890")
 
@@ -41,7 +40,6 @@ func TestInitConfig(t *testing.T) {
 	}
 
 	// Clean up environment variables
-	os.Unsetenv("TELEGRAM_TARGET")
 	os.Unsetenv("TELEGRAM_TOKEN")
 	os.Unsetenv("TELEGRAM_ADMIN_ID")
 }
