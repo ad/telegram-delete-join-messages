@@ -1,4 +1,4 @@
-FROM --platform=${BUILDPLATFORM:-linux/amd64} danielapatin/homeassistant-addon-golang-template as builder
+FROM danielapatin/homeassistant-addon-golang-template as builder
 
 ARG BUILD_VERSION
 ARG TARGETPLATFORM
@@ -16,10 +16,10 @@ COPY logger logger
 COPY sender sender
 COPY main.go main.go
 COPY config.json /config.json
-RUN echo "Building for ${TARGETOS}/${TARGETARCH} with version ${BUILD_VERSION}"
-RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -mod vendor -ldflags="-w -s -X main.version=${BUILD_VERSION}" -o /go/bin/app main.go
+RUN echo "Building for ${BUILDPLATFORM:-linux/amd64} with version ${BUILD_VERSION}"
+RUN CGO_ENABLED=0 go build -mod vendor -ldflags="-w -s -X main.version=${BUILD_VERSION}" -o /go/bin/app main.go
 
-FROM --platform=${TARGETPLATFORM:-linux/amd64} scratch
+FROM scratch
 WORKDIR /app/
 COPY --from=builder /etc/ssl/certs/ca-certificates.crt /etc/ssl/certs/
 COPY --from=builder /etc/passwd /etc/passwd
