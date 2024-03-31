@@ -39,7 +39,7 @@ jobs:
         working-directory: .
         env:
           DOCKER_IMAGE: ${{ secrets.DOCKER_USER }}/telegram-delete-join-messages
-          TAGS: "${{steps.set_var.outputs.docker_image}}:${{steps.set_var.outputs.version}},${{steps.set_var.outputs.docker_image}}:${SHORTREF},${{steps.set_var.outputs.docker_image}}:latest"
+          TAGS: "${{steps.set_var.outputs.docker_image}}:${{steps.set_var.outputs.version}},${{steps.set_var.outputs.docker_image}}:latest"
           GITHUB_SHA: ${{ github.sha}}
           GITHUB_REF: ${{ github.ref}}
         run: |
