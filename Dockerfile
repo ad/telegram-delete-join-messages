@@ -1,5 +1,7 @@
 FROM golang:alpine AS builder
 
+RUN apk update && apk add --no-cache ca-certificates && update-ca-certificates
+
 ARG BUILD_VERSION
 
 WORKDIR $GOPATH/src/app
