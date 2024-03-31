@@ -7,7 +7,14 @@ ARG TARGETOS
 ARG TARGETARCH
 
 WORKDIR $GOPATH/src/app
-COPY . .
+COPY go.mod go.mod
+COPY go.sum go.sum
+COPY vendor vendor
+COPY app app
+COPY config config
+COPY logger logger
+COPY sender sender
+COPY main.go main.go
 COPY config.json /config.json
 RUN echo "Building for ${TARGETOS}/${TARGETARCH} with version ${BUILD_VERSION}"
 RUN CGO_ENABLED=0 GOOS=${TARGETOS} GOARCH=${TARGETARCH} go build -mod vendor -ldflags="-w -s -X main.version=${BUILD_VERSION}" -o /go/bin/app main.go

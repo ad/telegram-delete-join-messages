@@ -32,8 +32,6 @@ jobs:
           # Set output parameters.
           echo "tags=${TAGS}" >> $GITHUB_OUTPUT
           echo "docker_image=${DOCKER_IMAGE}" >> $GITHUB_OUTPUT
-          echo "BUILD_TIMESTAMP=$(date +%Y-%m-%dT%H:%M:%S)" >> $GITHUB_ENV
-          echo "TAGS=$(date +%Y-%m-%dT%H:%M:%S)" >> $GITHUB_ENV
       - name: Set up QEMU
         uses: docker/setup-qemu-action@master
         with:
@@ -63,4 +61,3 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             BUILD_VERSION=${{steps.set_var.outputs.version}}
-            BUILD_TIMESTAMP=${{steps.set_var.outputs.timestamp}}
