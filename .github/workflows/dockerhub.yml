@@ -46,6 +46,6 @@ jobs:
         run: |
           ref="$(echo ${GITHUB_REF} | cut -d'/' -f3)"
           docker buildx build --push \
-              --build-arg CI=github --build-arg BUILD_VERSION=${steps.set_var.outputs.version} --build-arg GITHUB_SHA=${GITHUB_SHA} --build-arg GIT_BRANCH=${ref} \
+              --build-arg CI=github --build-arg BUILD_VERSION=${{steps.set_var.outputs.version}} --build-arg GITHUB_SHA=${GITHUB_SHA} --build-arg GIT_BRANCH=${ref} \
               --platform linux/arm64 \
               -t ${{steps.set_var.outputs.docker_image}}:${{steps.set_var.outputs.version}} -t ${{steps.set_var.outputs.docker_image}}:latest .
