@@ -39,7 +39,7 @@ LABEL \
     io.hass.name="telegram-delete-join-messages" \
     io.hass.description="telegram-delete-join-messages" \
     io.hass.arch="${BUILD_ARCH}" \
-    io.hass.version="${BUILD_VERSION}"" \
+    io.hass.version="${BUILD_VERSION}" \
     io.hass.type="addon" \
     maintainer="ad <github@apatin.ru>" \
     org.label-schema.description="telegram-delete-join-messages" \
