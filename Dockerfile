@@ -1,10 +1,6 @@
 FROM danielapatin/homeassistant-addon-golang-template as builder
 
 ARG BUILD_VERSION
-ARG TARGETPLATFORM
-ARG BUILDPLATFORM
-ARG TARGETOS
-ARG TARGETARCH
 
 WORKDIR $GOPATH/src/app
 COPY go.mod go.mod
@@ -16,6 +12,7 @@ COPY logger logger
 COPY sender sender
 COPY main.go main.go
 COPY config.json /config.json
+RUN go version
 RUN CGO_ENABLED=0 go build -mod vendor -ldflags="-w -s -X main.version=${BUILD_VERSION}" -o /go/bin/app main.go
 
 FROM scratch
@@ -42,7 +39,7 @@ LABEL \
     io.hass.name="telegram-delete-join-messages" \
     io.hass.description="telegram-delete-join-messages" \
     io.hass.arch="${BUILD_ARCH}" \
-    io.hass.version=${BUILD_VERSION} \
+    io.hass.version="${BUILD_VERSION}"" \
     io.hass.type="addon" \
     maintainer="ad <github@apatin.ru>" \
     org.label-schema.description="telegram-delete-join-messages" \
