@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0",
+  "version": "0.2.0",
   "name": "telegram-delete-join-messages",
   "slug": "telegram-delete-join-messages",
   "description": "",
@@ -16,6 +16,7 @@
     "DELETE_LEAVE": true,
     "RESTRICT_ON_JOIN": false,
     "RESTRICT_ON_JOIN_TIME": 600,
+    "ALLOWED_CHAT_IDS": "[]",
     "DEBUG": false
   },
   "schema": {
@@ -26,6 +27,7 @@
     "DELETE_LEAVE": "bool",
     "RESTRICT_ON_JOIN": "bool",
     "RESTRICT_ON_JOIN_TIME": "int",
+    "ALLOWED_CHAT_IDS": "str",
     "DEBUG": "bool"
   }
 }

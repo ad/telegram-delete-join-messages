@@ -7,6 +7,7 @@ import (
 	"io"
 	"os"
 	"strconv"
+	"strings"
 
 	_ "github.com/joho/godotenv/autoload"
 )
@@ -26,6 +27,9 @@ type Config struct {
 	RestictOnJoin      bool `json:"RESTRICT_ON_JOIN"`
 	RestrictOnJoinTime int  `json:"RESTRICT_ON_JOIN_TIME"`
 
+	AllowedChatIDs     string  `json:"ALLOWED_CHAT_IDS"`
+	AllowedChatIDsList []int64 `json:"-"`
+
 	Debug bool `json:"DEBUG"`
 }
 
@@ -40,6 +44,9 @@ func InitConfig(args []string) (*Config, error) {
 
 		RestictOnJoin:      true,
 		RestrictOnJoinTime: 120,
+
+		AllowedChatIDs:     "",
+		AllowedChatIDsList: []int64{},
 
 		Debug: false,
 	}
@@ -69,6 +76,8 @@ func InitConfig(args []string) (*Config, error) {
 		flags.BoolVar(&config.RestictOnJoin, "restrictOnJoin", lookupEnvOrBool("RESTRICT_ON_JOIN", config.RestictOnJoin), "RESTRICT_ON_JOIN")
 		flags.IntVar(&config.RestrictOnJoinTime, "restrictOnJoinTime", lookupEnvOrInt("RESTRICT_ON_JOIN_TIME", config.RestrictOnJoinTime), "RESTRICT_ON_JOIN_TIME")
 
+		flags.StringVar(&config.AllowedChatIDs, "allowedChatIDs", lookupEnvOrString("ALLOWED_CHAT_IDS", config.AllowedChatIDs), "ALLOWED_CHAT_IDS")
+
 		flags.BoolVar(&config.Debug, "debug", lookupEnvOrBool("DEBUG", config.Debug), "Debug")
 
 		if err := flags.Parse(args[1:]); err != nil {
@@ -79,6 +88,15 @@ func InitConfig(args []string) (*Config, error) {
 	if config.TelegramAdmin != "" {
 		if chatID, err := strconv.ParseInt(config.TelegramAdmin, 10, 64); err == nil {
 			config.TelegramAdminID = chatID
+		}
+	}
+
+	if config.AllowedChatIDs != "" {
+		chatIDS := strings.Split(config.AllowedChatIDs, ",")
+		for _, chatID := range chatIDS {
+			if chatIDInt, err := strconv.ParseInt(strings.Trim(chatID, "\n\t "), 10, 64); err == nil {
+				config.AllowedChatIDsList = append(config.AllowedChatIDsList, chatIDInt)
+			}
 		}
 	}
 
