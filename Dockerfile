@@ -1,4 +1,4 @@
-FROM danielapatin/homeassistant-addon-golang-template as builder
+FROM golang:alpine AS builder
 
 ARG BUILD_VERSION
 
