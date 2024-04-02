@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/ad/telegram-delete-join-messages/commands"
 	conf "github.com/ad/telegram-delete-join-messages/config"
 	"github.com/go-telegram/bot"
 	bm "github.com/go-telegram/bot/models"
@@ -24,6 +25,7 @@ type Sender struct {
 }
 
 func InitSender(lgr *slog.Logger, config *conf.Config) (*Sender, error) {
+	command := commands.InitCommands(config)
 	sender := &Sender{
 		lgr:              lgr,
 		config:           config,
@@ -70,6 +72,14 @@ func InitSender(lgr *slog.Logger, config *conf.Config) (*Sender, error) {
 	go sender.sendDeferredMessages()
 
 	sender.Bot = b
+
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/tldr", bot.MatchTypePrefix, command.TLDR)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/kick", bot.MatchTypePrefix, command.Kick)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/mute", bot.MatchTypePrefix, command.Mute)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/unmute", bot.MatchTypePrefix, command.Unmute)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/ban", bot.MatchTypeExact, command.Ban)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/unban", bot.MatchTypeExact, command.Unban)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/exit", bot.MatchTypeExact, command.Exit)
 
 	return sender, nil
 }

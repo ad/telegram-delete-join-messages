@@ -30,6 +30,8 @@ type Config struct {
 	AllowedChatIDs     string  `json:"ALLOWED_CHAT_IDS"`
 	AllowedChatIDsList []int64 `json:"-"`
 
+	YandexToken string `json:"YANDEX_TOKEN"`
+
 	Debug bool `json:"DEBUG"`
 }
 
@@ -47,6 +49,8 @@ func InitConfig(args []string) (*Config, error) {
 
 		AllowedChatIDs:     "",
 		AllowedChatIDsList: []int64{},
+
+		YandexToken: "",
 
 		Debug: false,
 	}
@@ -77,6 +81,8 @@ func InitConfig(args []string) (*Config, error) {
 		flags.IntVar(&config.RestrictOnJoinTime, "restrictOnJoinTime", lookupEnvOrInt("RESTRICT_ON_JOIN_TIME", config.RestrictOnJoinTime), "RESTRICT_ON_JOIN_TIME")
 
 		flags.StringVar(&config.AllowedChatIDs, "allowedChatIDs", lookupEnvOrString("ALLOWED_CHAT_IDS", config.AllowedChatIDs), "ALLOWED_CHAT_IDS")
+
+		flags.StringVar(&config.YandexToken, "yandexToken", lookupEnvOrString("YANDEX_TOKEN", config.YandexToken), "YANDEX_TOKEN")
 
 		flags.BoolVar(&config.Debug, "debug", lookupEnvOrBool("DEBUG", config.Debug), "Debug")
 
