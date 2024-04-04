@@ -38,10 +38,10 @@ func Run(ctx context.Context, w io.Writer, args []string) error {
 		return errInitSender
 	}
 
-	if config.TelegramAdminID != 0 {
+	if len(config.TelegramAdminIDsList) != 0 {
 		sender.MakeRequestDeferred(sndr.DeferredMessage{
 			Method: "sendMessage",
-			ChatID: config.TelegramAdminID,
+			ChatID: config.TelegramAdminIDsList[0],
 			Text:   "Bot restarted",
 		}, sender.SendResult)
 	}

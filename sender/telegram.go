@@ -73,13 +73,14 @@ func InitSender(lgr *slog.Logger, config *conf.Config) (*Sender, error) {
 
 	sender.Bot = b
 
-	b.RegisterHandler(bot.HandlerTypeMessageText, "/tldr", bot.MatchTypePrefix, command.TLDR)
 	b.RegisterHandler(bot.HandlerTypeMessageText, "/kick", bot.MatchTypePrefix, command.Kick)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/id", bot.MatchTypePrefix, command.Id)
 	b.RegisterHandler(bot.HandlerTypeMessageText, "/mute", bot.MatchTypePrefix, command.Mute)
 	b.RegisterHandler(bot.HandlerTypeMessageText, "/unmute", bot.MatchTypePrefix, command.Unmute)
 	b.RegisterHandler(bot.HandlerTypeMessageText, "/ban", bot.MatchTypeExact, command.Ban)
 	b.RegisterHandler(bot.HandlerTypeMessageText, "/unban", bot.MatchTypeExact, command.Unban)
 	b.RegisterHandler(bot.HandlerTypeMessageText, "/exit", bot.MatchTypeExact, command.Exit)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/tldr", bot.MatchTypePrefix, command.TLDR)
 
 	return sender, nil
 }

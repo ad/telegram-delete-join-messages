@@ -17,7 +17,7 @@ func (c *Commands) Exit(ctx context.Context, b *bot.Bot, update *models.Update) 
 		return
 	}
 
-	if update.Message.From.ID == c.config.TelegramAdminID {
+	if slices.Contains(c.config.TelegramAdminIDsList, update.Message.From.ID) {
 		fmt.Println("exiting... by", update.Message.From.ID)
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:    update.Message.Chat.ID,

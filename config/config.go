@@ -16,10 +16,9 @@ const ConfigFileName = "/data/options.json"
 
 // Config ...
 type Config struct {
-	TelegramToken string `json:"TELEGRAM_TOKEN"`
-	TelegramAdmin string `json:"TELEGRAM_ADMIN_ID"`
-
-	TelegramAdminID int64
+	TelegramToken        string  `json:"TELEGRAM_TOKEN"`
+	TelegramAdminIDs     string  `json:"TELEGRAM_ADMIN_IDS"`
+	TelegramAdminIDsList []int64 `json:"-"`
 
 	DeleteJoinMessages  bool `json:"DELETE_JOIN"`
 	DeleteLeaveMessages bool `json:"DELETE_LEAVE"`
@@ -37,9 +36,9 @@ type Config struct {
 
 func InitConfig(args []string) (*Config, error) {
 	var config = &Config{
-		TelegramToken:   "",
-		TelegramAdmin:   "",
-		TelegramAdminID: 0,
+		TelegramToken:        "",
+		TelegramAdminIDs:     "",
+		TelegramAdminIDsList: []int64{},
 
 		DeleteJoinMessages:  false,
 		DeleteLeaveMessages: false,
@@ -72,7 +71,7 @@ func InitConfig(args []string) (*Config, error) {
 	if !initFromFile {
 		flags := flag.NewFlagSet(args[0], flag.ContinueOnError)
 		flags.StringVar(&config.TelegramToken, "telegramToken", lookupEnvOrString("TELEGRAM_TOKEN", config.TelegramToken), "TELEGRAM_TOKEN")
-		flags.StringVar(&config.TelegramAdmin, "telegramAdminID", lookupEnvOrString("TELEGRAM_ADMIN_ID", config.TelegramAdmin), "TELEGRAM_ADMIN_ID")
+		flags.StringVar(&config.TelegramAdminIDs, "telegramAdminIDs", lookupEnvOrString("TELEGRAM_ADMIN_IDS", config.TelegramAdminIDs), "TELEGRAM_ADMIN_IDS")
 
 		flags.BoolVar(&config.DeleteJoinMessages, "deleteJoin", lookupEnvOrBool("DELETE_JOIN", config.DeleteJoinMessages), "DELETE_JOIN")
 		flags.BoolVar(&config.DeleteLeaveMessages, "deleteLeave", lookupEnvOrBool("DELETE_LEAVE", config.DeleteLeaveMessages), "DELETE_LEAVE")
@@ -91,9 +90,12 @@ func InitConfig(args []string) (*Config, error) {
 		}
 	}
 
-	if config.TelegramAdmin != "" {
-		if chatID, err := strconv.ParseInt(config.TelegramAdmin, 10, 64); err == nil {
-			config.TelegramAdminID = chatID
+	if config.TelegramAdminIDs != "" {
+		chatIDS := strings.Split(config.TelegramAdminIDs, ",")
+		for _, chatID := range chatIDS {
+			if chatIDInt, err := strconv.ParseInt(strings.Trim(chatID, "\n\t "), 10, 64); err == nil {
+				config.TelegramAdminIDsList = append(config.TelegramAdminIDsList, chatIDInt)
+			}
 		}
 	}
 

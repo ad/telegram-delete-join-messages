@@ -1,0 +1,47 @@
+---
+configuration:
+  TELEGRAM_TOKEN:
+    name: Telegram bot token
+    description: >-
+      You can get it from the BotFather. It's a string of numbers and letters
+      that looks like this: 123456:ABC-DEF1234ghIkl-zyx57W2v1u123ew11
+  TELEGRAM_ADMIN_IDS:
+    name: Admin IDs
+    description: >-
+      A comma-separated list of Telegram user IDs that will have access to the
+      admin commands. You can get your user ID by sending the /id command to
+      the bot.
+  DELETE_JOIN:
+    name: Delete join messages
+    description: >-
+      If enabled, the bot will delete join messages in the chat. This is useful
+      to keep the chat clean.
+  DELETE_LEAVE:
+    name: Delete leave messages
+    description: >-
+      If enabled, the bot will delete leave messages in the chat. This is useful
+      to keep the chat clean.
+  RESTRICT_ON_JOIN:
+    name: Restrict new users
+    description: >-
+      If enabled, the bot will restrict new users when they join the chat. This
+      is useful to prevent spam.
+  RESTRICT_ON_JOIN_TIME:
+    name: Restrict new users for
+    description: >-
+      The amount of time in seconds that the bot will restrict new users when
+      they join the chat.
+  ALLOWED_CHAT_IDS:
+    name: Allowed chat IDs
+    description: >-
+      A comma-separated list of chat IDs that the bot will work in. You can get
+      the chat ID by sending the /id command to the bot.
+  YANDEX_TOKEN:
+    name: Yandex API token
+    description: >-
+      You can get it from the https://300.ya.ru/.
+  DEBUG:
+    name: Debug mode
+    description: >-
+      If enabled, the bot will log debug messages to the console. This is useful
+      for troubleshooting.

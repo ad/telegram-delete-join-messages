@@ -15,7 +15,7 @@ func (c *Commands) Ban(ctx context.Context, b *bot.Bot, update *models.Update) {
 		return
 	}
 
-	if update.Message.From.ID == c.config.TelegramAdminID {
+	if slices.Contains(c.config.TelegramAdminIDsList, update.Message.From.ID) {
 		userID := update.Message.ReplyToMessage.From.ID
 		chatID := update.Message.Chat.ID
 
