@@ -4,7 +4,7 @@ go 1.22
 
 require (
 	github.com/PuerkitoBio/goquery v1.9.2
-	github.com/go-telegram/bot v1.3.0
+	github.com/go-telegram/bot v1.3.1
 	github.com/joho/godotenv v1.5.1
 	github.com/tidwall/gjson v1.17.1
 	mvdan.cc/xurls/v2 v2.5.0
