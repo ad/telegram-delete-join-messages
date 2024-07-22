@@ -132,6 +132,13 @@ func (b *Bot) SendVideoNote(ctx context.Context, params *SendVideoNoteParams) (*
 	return result, err
 }
 
+// SendPaidMedia https://core.telegram.org/bots/api#sendpaidmedia
+func (b *Bot) SendPaidMedia(ctx context.Context, params *SendPaidMediaParams) (*models.Message, error) {
+	var result models.Message
+	err := b.rawRequest(ctx, "sendPaidMedia", params, &result)
+	return &result, err
+}
+
 // SendMediaGroup https://core.telegram.org/bots/api#sendmediagroup
 func (b *Bot) SendMediaGroup(ctx context.Context, params *SendMediaGroupParams) ([]*models.Message, error) {
 	var result []*models.Message
@@ -811,6 +818,13 @@ func (b *Bot) AnswerPreCheckoutQuery(ctx context.Context, params *AnswerPreCheck
 	return result, err
 }
 
+// GetStarTransactions https://core.telegram.org/bots/api#getstartransactions
+func (b *Bot) GetStarTransactions(ctx context.Context, params *GetStarTransactionsParams) (*models.StarTransactions, error) {
+	result := models.StarTransactions{}
+	err := b.rawRequest(ctx, "getStarTransactions", params, &result)
+	return &result, err
+}
+
 // RefundStarPayment https://core.telegram.org/bots/api#refundstarpayment
 func (b *Bot) RefundStarPayment(ctx context.Context, params *RefundStarPaymentParams) (bool, error) {
 	var result bool
@@ -840,8 +854,8 @@ func (b *Bot) SetGameScore(ctx context.Context, params *SetGameScoreParams) (*mo
 }
 
 // GetGameHighScores https://core.telegram.org/bots/api#getgamehighscores
-func (b *Bot) GetGameHighScores(ctx context.Context, params *GetGameHighScoresParams) (*models.GameHighScore, error) {
-	result := &models.GameHighScore{}
-	err := b.rawRequest(ctx, "getGameHighScores", params, result)
+func (b *Bot) GetGameHighScores(ctx context.Context, params *GetGameHighScoresParams) ([]*models.GameHighScore, error) {
+	var result []*models.GameHighScore
+	err := b.rawRequest(ctx, "getGameHighScores", params, &result)
 	return result, err
 }
