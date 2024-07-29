@@ -10,6 +10,7 @@ COPY go.mod go.mod
 COPY go.sum go.sum
 COPY vendor vendor
 COPY app app
+COPY data data
 COPY commands commands
 COPY config config
 COPY logger logger
