@@ -31,6 +31,8 @@ type Config struct {
 
 	YandexToken string `json:"YANDEX_TOKEN"`
 
+	DB_PATH string `json:"DB_PATH"`
+
 	Debug bool `json:"DEBUG"`
 }
 
@@ -82,6 +84,8 @@ func InitConfig(args []string) (*Config, error) {
 		flags.StringVar(&config.AllowedChatIDs, "allowedChatIDs", lookupEnvOrString("ALLOWED_CHAT_IDS", config.AllowedChatIDs), "ALLOWED_CHAT_IDS")
 
 		flags.StringVar(&config.YandexToken, "yandexToken", lookupEnvOrString("YANDEX_TOKEN", config.YandexToken), "YANDEX_TOKEN")
+
+		flags.StringVar(&config.DB_PATH, "dbPath", lookupEnvOrString("DB_PATH", config.DB_PATH), "DB_PATH")
 
 		flags.BoolVar(&config.Debug, "debug", lookupEnvOrBool("DEBUG", config.Debug), "Debug")
 
