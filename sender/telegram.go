@@ -204,7 +204,7 @@ func (s *Sender) startConversation(ctx context.Context, b *bot.Bot, update *mode
 		return
 	}
 
-	s.convHandler.SetActiveStage(towerStage) //start the tower stage
+	s.convHandler.SetActiveStage(towerStage, int(update.Message.From.ID)) //start the tower stage
 
 	// Ask user to enter their name
 	b.SendMessage(ctx, &bot.SendMessageParams{
@@ -240,7 +240,7 @@ func (s *Sender) towerHandler(ctx context.Context, b *bot.Bot, update *models.Up
 		return
 	}
 
-	s.convHandler.SetActiveStage(roomStage) //change stage to last name stage
+	s.convHandler.SetActiveStage(roomStage, int(update.Message.From.ID)) //change stage to last name stage
 	// s.convHandler.End() // end the conversation
 
 	b.SendMessage(ctx, &bot.SendMessageParams{
@@ -287,7 +287,7 @@ func (s *Sender) roomHandler(ctx context.Context, b *bot.Bot, update *models.Upd
 		return
 	}
 
-	s.convHandler.End() // end the conversation
+	s.convHandler.End(int(update.Message.From.ID)) // end the conversation
 
 	user_data := fmt.Sprintf("id %d %s %s %s", update.Message.From.ID, update.Message.From.FirstName, update.Message.From.LastName, update.Message.From.Username)
 
@@ -306,7 +306,7 @@ func (s *Sender) roomHandler(ctx context.Context, b *bot.Bot, update *models.Upd
 
 // Handle /cancel command to end the conversation
 func (s *Sender) cancelConversation(ctx context.Context, b *bot.Bot, update *models.Update) {
-	s.convHandler.End() // end the conversation
+	s.convHandler.End(int(update.Message.From.ID)) // end the conversation
 
 	// Send a message to indicate the conversation has been cancelled
 	b.SendMessage(ctx, &bot.SendMessageParams{

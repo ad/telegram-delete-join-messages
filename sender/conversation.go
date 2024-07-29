@@ -10,16 +10,16 @@ import (
 
 // ConversationHandler is a structure that manages conversation functions.
 type ConversationHandler struct {
-	active         bool                    // a flag indicating whether the conversation is active
-	currentStageId int                     // the identifier of the active conversation stage
+	active         map[int]bool            // a flag indicating whether the conversation is active
+	currentStageId map[int]int             // the identifier of the active conversation stage
 	stages         map[int]bot.HandlerFunc // a map of conversation stages
 }
 
 // NewConversationHandler returns a new instance of ConversationHandler.
 func NewConversationHandler() *ConversationHandler {
 	return &ConversationHandler{
-		active:         false,
-		currentStageId: 0,
+		active:         make(map[int]bool),
+		currentStageId: make(map[int]int),
 		stages:         make(map[int]bot.HandlerFunc),
 	}
 }
@@ -33,19 +33,19 @@ func (c *ConversationHandler) AddStage(stageId int, hf bot.HandlerFunc) {
 // Invalid currentStageId is not checked because if the CallStage function encounters an invalid id,
 // it will not process it, so the stageId is not checked.
 // if stageId <= len(c.stages)
-func (c *ConversationHandler) SetActiveStage(stageId int) {
-	if !c.active {
-		c.active = true
+func (c *ConversationHandler) SetActiveStage(stageId int, userID int) {
+	if a, ok := c.active[userID]; !ok || !a {
+		c.active[userID] = true
 	}
 
-	c.currentStageId = stageId
+	c.currentStageId[userID] = stageId
 }
 
 // CallStage calls the function of the active conversation stage.
 func (c *ConversationHandler) CallStage(ctx context.Context, b *bot.Bot, update *models.Update) {
-	if c.active {
+	if _, ok := c.active[int(update.Message.From.ID)]; ok {
 		// hf = HandlerFunction
-		if hf, ok := c.stages[c.currentStageId]; ok {
+		if hf, ok := c.stages[c.currentStageId[int(update.Message.From.ID)]]; ok {
 			hf(ctx, b, update)
 		} else {
 			log.Println("Error: Invalid stage id. No matching function found for the current stage id.")
@@ -54,6 +54,6 @@ func (c *ConversationHandler) CallStage(ctx context.Context, b *bot.Bot, update 
 }
 
 // End ends the conversation.
-func (c *ConversationHandler) End() {
-	c.active = false
+func (c *ConversationHandler) End(userID int) {
+	c.active[userID] = false
 }
