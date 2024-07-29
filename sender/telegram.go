@@ -2,6 +2,7 @@ package sender
 
 import (
 	"context"
+	"database/sql"
 	"fmt"
 	"log/slog"
 	"slices"
@@ -18,17 +19,19 @@ type Sender struct {
 	sync.RWMutex
 	lgr              *slog.Logger
 	config           *conf.Config
+	DB               *sql.DB
 	Bot              *bot.Bot
 	Config           *conf.Config
 	deferredMessages map[int64]chan DeferredMessage
 	lastMessageTimes map[int64]int64
 }
 
-func InitSender(lgr *slog.Logger, config *conf.Config) (*Sender, error) {
+func InitSender(lgr *slog.Logger, config *conf.Config, db *sql.DB) (*Sender, error) {
 	command := commands.InitCommands(config)
 	sender := &Sender{
 		lgr:              lgr,
 		config:           config,
+		DB:               db,
 		deferredMessages: make(map[int64]chan DeferredMessage),
 		lastMessageTimes: make(map[int64]int64),
 	}
