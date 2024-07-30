@@ -6,13 +6,11 @@ import (
 	"fmt"
 	"log/slog"
 	"slices"
-	"strconv"
 	"sync"
 	"time"
 
 	"github.com/ad/telegram-delete-join-messages/commands"
 	conf "github.com/ad/telegram-delete-join-messages/config"
-	"github.com/ad/telegram-delete-join-messages/data"
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 )
@@ -28,11 +26,6 @@ type Sender struct {
 	lastMessageTimes map[int64]int64
 	convHandler      *ConversationHandler
 }
-
-const (
-	towerStage = iota // Definition of the first name stage = 0
-	roomStage
-)
 
 func InitSender(lgr *slog.Logger, config *conf.Config, db *sql.DB) (*Sender, error) {
 	command := commands.InitCommands(config)
@@ -82,6 +75,7 @@ func InitSender(lgr *slog.Logger, config *conf.Config, db *sql.DB) (*Sender, err
 	// Create a conversation handler and add stages
 	convHandler := NewConversationHandler()
 	convHandler.AddStage(towerStage, sender.towerHandler)
+	convHandler.AddStage(zabavaStage, sender.zabavaHandler)
 	convHandler.AddStage(roomStage, sender.roomHandler)
 
 	sender.convHandler = convHandler
@@ -100,7 +94,7 @@ func InitSender(lgr *slog.Logger, config *conf.Config, db *sql.DB) (*Sender, err
 	b.RegisterHandler(bot.HandlerTypeMessageText, "/exit", bot.MatchTypeExact, command.Exit)
 	b.RegisterHandler(bot.HandlerTypeMessageText, "/tldr", bot.MatchTypePrefix, command.TLDR)
 
-	b.RegisterHandler(bot.HandlerTypeMessageText, "/start", bot.MatchTypeExact, sender.startConversation)
+	b.RegisterHandler(bot.HandlerTypeMessageText, "/start", bot.MatchTypeExact, sender.start)
 	b.RegisterHandler(bot.HandlerTypeMessageText, "/cancel", bot.MatchTypeExact, sender.cancelConversation)
 
 	return sender, nil
@@ -188,145 +182,10 @@ func (s *Sender) handler(ctx context.Context, b *bot.Bot, update *models.Update)
 }
 
 // Handle /start command to start getting the user's tower
-func (s *Sender) startConversation(ctx context.Context, b *bot.Bot, update *models.Update) {
+func (s *Sender) start(ctx context.Context, b *bot.Bot, update *models.Update) {
 	if update.Message == nil {
 		return
 	}
 
-	// check room presense in db
-	vote, err := data.CheckVote(s.DB, update.Message.Chat.ID, update.Message.From.ID)
-	if err != nil && err != sql.ErrNoRows {
-		s.lgr.Info(fmt.Sprintf("startConversation CheckVote: %s", err.Error()))
-	}
-
-	if vote != "" {
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
-			Text:   fmt.Sprintf("Вы уже голосовали: %s", vote),
-		})
-
-		return
-	}
-
-	s.convHandler.SetActiveStage(towerStage, int(update.Message.From.ID)) //start the tower stage
-
-	// Ask user to enter their name
-	b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: update.Message.Chat.ID,
-		Text:   "Пожалуйста, скажите, из какой вы башни?",
-	})
-}
-
-// Handle the tower stage to get the user's tower
-func (s *Sender) towerHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	if update.Message == nil {
-		return
-	}
-
-	// firstName = update.Message.Text
-
-	// check tower presense in db
-	tower := update.Message.Text
-
-	allowedTowers := []string{
-		"1", "2",
-		"б", "Б", "к", "К",
-		"первой", "второй",
-		"Первой", "Второй",
-		"первого", "второго",
-		"Первого", "Второго",
-		"байконурская", "королева", "королёва",
-		"Байконурская", "Королева", "Королёва",
-	}
-
-	if !slices.Contains(allowedTowers, tower) {
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
-			Text:   fmt.Sprintf("Извините, но башни %s у нас нет. Попробуйте еще раз", tower),
-		})
-
-		return
-	}
-
-	s.convHandler.SetActiveStage(roomStage, int(update.Message.From.ID)) //change stage to last name stage
-	// s.convHandler.End() // end the conversation
-
-	b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: update.Message.Chat.ID,
-		Text:   fmt.Sprintf("Хорошо, из башни #%s. А теперь номер квартиры :)", tower),
-	})
-}
-
-// Handle the room stage to get the user's room
-func (s *Sender) roomHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	if update.Message == nil {
-		return
-	}
-
-	// check room presense in db
-	room := update.Message.Text
-
-	vote, err := data.CheckVote(s.DB, update.Message.Chat.ID, update.Message.From.ID)
-	if err != nil && err != sql.ErrNoRows {
-		s.lgr.Info(fmt.Sprintf("roomHandler CheckVote(%s): %s", room, err.Error()))
-
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
-			Text:   "Произошла ошибка при проверке голоса",
-		})
-
-		return
-	}
-
-	if vote != "" {
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
-			Text:   fmt.Sprintf("Вы уже голосовали: %s", vote),
-		})
-
-		return
-	}
-
-	allowedRoomsMin := 1
-	allowedRoomsMax := 344
-
-	if roomInt, err := strconv.Atoi(room); err != nil || roomInt < allowedRoomsMin || roomInt > allowedRoomsMax {
-		b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
-			Text:   fmt.Sprintf("Извините, но квартиры %s у нас нет. Попробуйте еще раз", room),
-		})
-
-		return
-	}
-
-	s.convHandler.End(int(update.Message.From.ID)) // end the conversation
-
-	user_data := fmt.Sprintf("id %d %s %s %s", update.Message.From.ID, update.Message.From.FirstName, update.Message.From.LastName, update.Message.From.Username)
-
-	err = data.AddVote(s.DB, update.Message.Chat.ID, update.Message.From.ID, room, user_data)
-	if err != nil {
-		s.lgr.Info(fmt.Sprintf("roomHandler AddVote (%s): %s", room, err.Error()))
-
-		return
-	}
-
-	b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: update.Message.Chat.ID,
-		Text:   fmt.Sprintf("Спасибо, записали #%s :)", room),
-	})
-}
-
-// Handle /cancel command to end the conversation
-func (s *Sender) cancelConversation(ctx context.Context, b *bot.Bot, update *models.Update) {
-	if update.Message == nil {
-		return
-	}
-
-	s.convHandler.End(int(update.Message.From.ID)) // end the conversation
-
-	// Send a message to indicate the conversation has been cancelled
-	b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: update.Message.Chat.ID,
-		Text:   "Дело ваше",
-	})
+	s.startConversation(ctx, b, update)
 }
