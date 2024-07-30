@@ -43,6 +43,10 @@ func (c *ConversationHandler) SetActiveStage(stageId int, userID int) {
 
 // CallStage calls the function of the active conversation stage.
 func (c *ConversationHandler) CallStage(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.Message == nil {
+		return
+	}
+
 	if _, ok := c.active[int(update.Message.From.ID)]; ok {
 		// hf = HandlerFunction
 		if hf, ok := c.stages[c.currentStageId[int(update.Message.From.ID)]]; ok {

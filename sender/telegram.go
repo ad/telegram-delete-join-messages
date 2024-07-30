@@ -189,6 +189,10 @@ func (s *Sender) handler(ctx context.Context, b *bot.Bot, update *models.Update)
 
 // Handle /start command to start getting the user's tower
 func (s *Sender) startConversation(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.Message == nil {
+		return
+	}
+
 	// check room presense in db
 	vote, err := data.CheckVote(s.DB, update.Message.Chat.ID, update.Message.From.ID)
 	if err != nil && err != sql.ErrNoRows {
@@ -215,6 +219,10 @@ func (s *Sender) startConversation(ctx context.Context, b *bot.Bot, update *mode
 
 // Handle the tower stage to get the user's tower
 func (s *Sender) towerHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.Message == nil {
+		return
+	}
+
 	// firstName = update.Message.Text
 
 	// check tower presense in db
@@ -251,6 +259,10 @@ func (s *Sender) towerHandler(ctx context.Context, b *bot.Bot, update *models.Up
 
 // Handle the room stage to get the user's room
 func (s *Sender) roomHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.Message == nil {
+		return
+	}
+
 	// check room presense in db
 	room := update.Message.Text
 
@@ -306,6 +318,10 @@ func (s *Sender) roomHandler(ctx context.Context, b *bot.Bot, update *models.Upd
 
 // Handle /cancel command to end the conversation
 func (s *Sender) cancelConversation(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.Message == nil {
+		return
+	}
+
 	s.convHandler.End(int(update.Message.From.ID)) // end the conversation
 
 	// Send a message to indicate the conversation has been cancelled
