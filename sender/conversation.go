@@ -58,6 +58,11 @@ func (c *ConversationHandler) CallStage(ctx context.Context, b *bot.Bot, update 
 		return
 	}
 
+	// check if message is private
+	if update.Message.Chat.Type != "private" {
+		return
+	}
+
 	if _, ok := c.active[int(update.Message.From.ID)]; ok {
 		// hf = HandlerFunction
 		if hf, ok := c.stages[c.currentStageId[int(update.Message.From.ID)]]; ok {
@@ -76,6 +81,11 @@ func (c *ConversationHandler) End(userID int) {
 // Handle /start command to start getting the user's tower
 func (s *Sender) startConversation(ctx context.Context, b *bot.Bot, update *models.Update) {
 	if update.Message == nil {
+		return
+	}
+
+	// check if message is private
+	if update.Message.Chat.Type != "private" {
 		return
 	}
 
@@ -106,6 +116,11 @@ func (s *Sender) startConversation(ctx context.Context, b *bot.Bot, update *mode
 // Handle the tower stage to get the user's tower
 func (s *Sender) towerHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	if update.Message == nil {
+		return
+	}
+
+	// check if message is private
+	if update.Message.Chat.Type != "private" {
 		return
 	}
 
@@ -146,6 +161,11 @@ func (s *Sender) zabavaHandler(ctx context.Context, b *bot.Bot, update *models.U
 		return
 	}
 
+	// check if message is private
+	if update.Message.Chat.Type != "private" {
+		return
+	}
+
 	allowedTowers := []string{
 		"забава", "Забава",
 		"zabava", "Zabava",
@@ -175,6 +195,11 @@ func (s *Sender) zabavaHandler(ctx context.Context, b *bot.Bot, update *models.U
 // Handle the room stage to get the user's room
 func (s *Sender) roomHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	if update.Message == nil {
+		return
+	}
+
+	// check if message is private
+	if update.Message.Chat.Type != "private" {
 		return
 	}
 
@@ -234,6 +259,11 @@ func (s *Sender) roomHandler(ctx context.Context, b *bot.Bot, update *models.Upd
 // Handle /cancel command to end the conversation
 func (s *Sender) cancelConversation(ctx context.Context, b *bot.Bot, update *models.Update) {
 	if update.Message == nil {
+		return
+	}
+
+	// check if message is private
+	if update.Message.Chat.Type != "private" {
 		return
 	}
 
