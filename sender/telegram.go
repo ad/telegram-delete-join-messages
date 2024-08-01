@@ -108,6 +108,16 @@ func (s *Sender) handler(ctx context.Context, b *bot.Bot, update *models.Update)
 		s.convHandler.CallStage(ctx, b, update)
 	}
 
+	if update.ChatJoinRequest != nil {
+		s.lgr.Debug(formatUpdateForLog(update))
+
+		go func() {
+			s.HandleChatJoinRequest(ctx, b, update)
+		}()
+
+		return
+	}
+
 	if s.config.RestictOnJoin && update.Message != nil && update.Message.NewChatMembers != nil {
 		s.lgr.Info(fmt.Sprintf("Restrict users %#v", update.Message.NewChatMembers))
 

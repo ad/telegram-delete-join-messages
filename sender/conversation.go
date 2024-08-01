@@ -250,9 +250,15 @@ func (s *Sender) roomHandler(ctx context.Context, b *bot.Bot, update *models.Upd
 		return
 	}
 
+	message := "🫶🏻 Спасибо, записали"
+
+	if s.config.InviteLink != "" {
+		message = message + "\n🤫 Теперь перейдите по ссылке: " + s.config.InviteLink
+	}
+
 	b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: update.Message.Chat.ID,
-		Text:   "🫶🏻 Спасибо, записали",
+		Text:   message,
 	})
 }
 
