@@ -80,8 +80,8 @@ func AddVote(db *sql.DB, userId, groupId int64, vote, user_data string) error {
 	return err
 }
 
-func CheckVote(db *sql.DB, userId, groupId int64) (string, error) {
-	var vote string
+func CheckVote(db *sql.DB, userId, groupId int64) (int, error) {
+	var vote int
 	err := db.QueryRow(`SELECT vote FROM votes WHERE user_id = ? AND group_id = ? AND state = 1`, userId, groupId).Scan(&vote)
 
 	return vote, err

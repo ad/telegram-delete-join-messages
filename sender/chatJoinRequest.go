@@ -20,7 +20,7 @@ func (s *Sender) HandleChatJoinRequest(ctx context.Context, b *bot.Bot, update *
 
 	fmt.Println(err)
 	fmt.Println(vote)
-	if vote != "" {
+	if vote != 0 {
 		// TODO: add ban check
 		_, errApproveChatJoinRequest := b.ApproveChatJoinRequest(
 			ctx,
@@ -49,5 +49,5 @@ func (s *Sender) HandleChatJoinRequest(ctx context.Context, b *bot.Bot, update *
 		fmt.Println("errDeclineChatJoinRequest: ", errDeclineChatJoinRequest, "for", update.ChatJoinRequest.From.ID)
 	}
 
-	fmt.Println("user join request declined ", update.ChatJoinRequest.From.ID)
+	fmt.Println("user join request declined", update.ChatJoinRequest.From.ID)
 }

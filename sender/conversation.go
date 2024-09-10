@@ -95,7 +95,7 @@ func (s *Sender) startConversation(ctx context.Context, b *bot.Bot, update *mode
 		s.lgr.Info(fmt.Sprintf("startConversation CheckVote: %s", err.Error()))
 	}
 
-	if vote != "" {
+	if vote != 0 {
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
 			Text:   "✅ Вас уже записали",
@@ -218,7 +218,7 @@ func (s *Sender) roomHandler(ctx context.Context, b *bot.Bot, update *models.Upd
 		return
 	}
 
-	if vote != "" {
+	if vote != 0 {
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
 			Text:   "✅ Вас уже записали",
