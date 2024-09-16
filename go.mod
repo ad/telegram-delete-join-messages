@@ -5,7 +5,7 @@ toolchain go1.23.1
 
 require (
 	github.com/PuerkitoBio/goquery v1.10.0
-	github.com/go-telegram/bot v1.7.2
+	github.com/go-telegram/bot v1.8.1
 	github.com/joho/godotenv v1.5.1
 	github.com/tidwall/gjson v1.17.3
 	modernc.org/sqlite v1.30.2
