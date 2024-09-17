@@ -11,7 +11,7 @@ import (
 )
 
 func (s *Sender) HandleChatJoinRequest(ctx context.Context, b *bot.Bot, update *models.Update) {
-	fmt.Println("chat join request for", update.ChatJoinRequest.From.ID, "from", update.ChatJoinRequest.Chat.ID)
+	fmt.Println(formatUpdateForLog(update), update.ChatJoinRequest.Bio)
 
 	vote, err := data.CheckVote(s.DB, update.ChatJoinRequest.From.ID, update.ChatJoinRequest.From.ID)
 	if err != nil && err != sql.ErrNoRows {

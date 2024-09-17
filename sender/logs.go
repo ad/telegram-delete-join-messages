@@ -21,6 +21,8 @@ func formatUpdateForLog(message *bm.Update) string {
 		return formatMessageReactionCountForLog(message)
 	case message.CallbackQuery != nil:
 		return formatCallbackQueryForLog(message)
+	case message.ChatJoinRequest != nil:
+		return formatChatJoinRequestForLog(message)
 	}
 
 	// jsonData, _ := json.Marshal(message)
@@ -100,6 +102,15 @@ func formatCallbackQueryForLog(message *bm.Update) string {
 
 func formatMessageReactionCountForLog(message *bm.Update) string {
 	return fmt.Sprintf("MessageReactionCount %#v", message.MessageReactionCount)
+}
+
+func formatChatJoinRequestForLog(message *bm.Update) string {
+	return fmt.Sprintf(
+		"ChatJoinRequest from %d (%s) -> %d",
+		message.ChatJoinRequest.From.ID,
+		getUserDataFromMessage(&message.ChatJoinRequest.From),
+		message.ChatJoinRequest.Chat.ID,
+	)
 }
 
 func getChatDataFromMessage(user *bm.Chat) string {
