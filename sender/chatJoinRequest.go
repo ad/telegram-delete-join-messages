@@ -37,11 +37,13 @@ func (s *Sender) HandleChatJoinRequest(ctx context.Context, b *bot.Bot, update *
 		return
 	}
 
+	s.convHandler.SetActiveStage(towerStage, int(update.ChatJoinRequest.From.ID)) //start the tower stage
+
 	_, errSendMessage := b.SendMessage(
 		ctx,
 		&bot.SendMessageParams{
 			ChatID: update.ChatJoinRequest.From.ID,
-			Text:   "❓ Для входа в группу ответьте на пару вопросов.",
+			Text:   "❓ Для входа в группу ответьте на пару вопросов.\n\n🏬 В какой башне вы живете?",
 		},
 	)
 
