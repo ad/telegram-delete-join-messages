@@ -5,10 +5,10 @@ toolchain go1.23.1
 
 require (
 	github.com/PuerkitoBio/goquery v1.10.0
-	github.com/go-telegram/bot v1.7.2
+	github.com/go-telegram/bot v1.8.1
 	github.com/joho/godotenv v1.5.1
 	github.com/tidwall/gjson v1.17.3
-	modernc.org/sqlite v1.30.2
+	modernc.org/sqlite v1.33.1
 	mvdan.cc/xurls/v2 v2.5.0
 )
 
@@ -25,7 +25,7 @@ require (
 	golang.org/x/net v0.29.0 // indirect
 	golang.org/x/sys v0.25.0 // indirect
 	modernc.org/gc/v3 v3.0.0-20240107210532-573471604cb6 // indirect
-	modernc.org/libc v1.52.1 // indirect
+	modernc.org/libc v1.55.3 // indirect
 	modernc.org/mathutil v1.6.0 // indirect
 	modernc.org/memory v1.8.0 // indirect
 	modernc.org/strutil v1.2.0 // indirect
