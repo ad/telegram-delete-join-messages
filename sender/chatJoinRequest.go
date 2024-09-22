@@ -37,6 +37,18 @@ func (s *Sender) HandleChatJoinRequest(ctx context.Context, b *bot.Bot, update *
 		return
 	}
 
+	_, errSendMessage := b.SendMessage(
+		ctx,
+		&bot.SendMessageParams{
+			ChatID: update.ChatJoinRequest.From.ID,
+			Text:   "❓ Для входа в группу ответьте на пару вопросов.",
+		},
+	)
+
+	if errSendMessage != nil {
+		fmt.Println("errSendMessage: ", errSendMessage, "for", update.ChatJoinRequest.From.ID)
+	}
+
 	_, errDeclineChatJoinRequest := b.DeclineChatJoinRequest(
 		ctx,
 		&bot.DeclineChatJoinRequestParams{

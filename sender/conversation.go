@@ -233,7 +233,7 @@ func (s *Sender) roomHandler(ctx context.Context, b *bot.Bot, update *models.Upd
 	if roomInt, err := strconv.Atoi(room); err != nil || roomInt < allowedRoomsMin || roomInt > allowedRoomsMax {
 		b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
-			Text:   "❌ Извините, но такой квартиры у нас нет. Попробуйте еще раз, но после нескольких неправльных ответов вас заблокируют.",
+			Text:   "❌ Извините, но такой квартиры у нас нет. Попробуйте еще раз, но после нескольких неправильных ответов вас заблокируют.",
 		})
 
 		return
