@@ -19,11 +19,15 @@ func (c *Commands) Exit(ctx context.Context, b *bot.Bot, update *models.Update) 
 
 	if slices.Contains(c.config.TelegramAdminIDsList, update.Message.From.ID) {
 		fmt.Println("exiting... by", update.Message.From.ID)
-		b.SendMessage(ctx, &bot.SendMessageParams{
+		_, errSendMessage := b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:    update.Message.Chat.ID,
 			Text:      "exiting...",
 			ParseMode: models.ParseModeHTML,
 		})
+
+		if errSendMessage != nil {
+			fmt.Println("errSendMessage (/exit): ", errSendMessage)
+		}
 
 		time.Sleep(1 * time.Second)
 

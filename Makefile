@@ -40,5 +40,5 @@ test:
 		-w $(CWD) \
 		-v $(CURDIR):$(CWD) \
 		-v $(GOCACHE):/.cache \
-		golang:1.22.0-alpine3.19 \
+		golang:1.23.0-alpine3.19 \
 		/bin/sh -c "./test.sh $(SRC_DIRS)"

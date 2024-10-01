@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"io"
-	"os"
 	"runtime/debug"
 	"strings"
 
@@ -15,17 +14,11 @@ import (
 	sndr "github.com/ad/telegram-delete-join-messages/sender"
 )
 
-var (
-	config *conf.Config
-)
-
 func Run(ctx context.Context, w io.Writer, args []string) error {
-	confLoad, errInitConfig := conf.InitConfig(os.Args)
+	config, errInitConfig := conf.InitConfig(args)
 	if errInitConfig != nil {
 		return errInitConfig
 	}
-
-	config = confLoad
 
 	lgr := logger.InitLogger(config.Debug)
 
@@ -36,7 +29,7 @@ func Run(ctx context.Context, w io.Writer, args []string) error {
 		}
 	}()
 
-	db := &sql.DB{}
+	var db *sql.DB
 
 	lgr.Debug(fmt.Sprintf("DB_PATH: %s", config.DB_PATH))
 

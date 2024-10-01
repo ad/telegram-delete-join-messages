@@ -13,7 +13,10 @@ import (
 func (s *Sender) HandleChatJoinRequest(ctx context.Context, b *bot.Bot, update *models.Update) {
 	fmt.Println(formatUpdateForLog(update), update.ChatJoinRequest.Bio)
 
-	vote, err := data.CheckVote(s.DB, update.ChatJoinRequest.From.ID, update.ChatJoinRequest.From.ID)
+	chatID := update.ChatJoinRequest.Chat.ID
+	fromID := update.ChatJoinRequest.From.ID
+
+	vote, err := data.CheckVote(s.DB, fromID, fromID)
 	if err != nil && err != sql.ErrNoRows {
 		return
 	}
@@ -25,43 +28,43 @@ func (s *Sender) HandleChatJoinRequest(ctx context.Context, b *bot.Bot, update *
 		_, errApproveChatJoinRequest := b.ApproveChatJoinRequest(
 			ctx,
 			&bot.ApproveChatJoinRequestParams{
-				ChatID: update.ChatJoinRequest.Chat.ID,
-				UserID: update.ChatJoinRequest.From.ID,
+				ChatID: chatID,
+				UserID: fromID,
 			},
 		)
 
 		if errApproveChatJoinRequest != nil {
-			fmt.Println("errApproveChatJoinRequest: ", errApproveChatJoinRequest, "for", update.ChatJoinRequest.From.ID)
+			fmt.Println("errApproveChatJoinRequest: ", errApproveChatJoinRequest, "for", fromID)
 		}
 
 		return
 	}
 
-	s.convHandler.SetActiveStage(towerStage, int(update.ChatJoinRequest.From.ID)) //start the tower stage
+	s.convHandler.SetActiveStage(towerStage, int(fromID)) //start the tower stage
 
 	_, errSendMessage := b.SendMessage(
 		ctx,
 		&bot.SendMessageParams{
-			ChatID: update.ChatJoinRequest.From.ID,
+			ChatID: fromID,
 			Text:   "❓ Для входа в группу ответьте на пару вопросов.\n\n🏬 В какой башне вы живете?",
 		},
 	)
 
 	if errSendMessage != nil {
-		fmt.Println("errSendMessage: ", errSendMessage, "for", update.ChatJoinRequest.From.ID)
+		fmt.Println("errSendMessage: ", errSendMessage, "for", fromID)
 	}
 
 	_, errDeclineChatJoinRequest := b.DeclineChatJoinRequest(
 		ctx,
 		&bot.DeclineChatJoinRequestParams{
-			ChatID: update.ChatJoinRequest.Chat.ID,
-			UserID: update.ChatJoinRequest.From.ID,
+			ChatID: chatID,
+			UserID: fromID,
 		},
 	)
 
 	if errDeclineChatJoinRequest != nil {
-		fmt.Println("errDeclineChatJoinRequest: ", errDeclineChatJoinRequest, "for", update.ChatJoinRequest.From.ID)
+		fmt.Println("errDeclineChatJoinRequest: ", errDeclineChatJoinRequest, "for", fromID)
 	}
 
-	fmt.Println("user join request declined", update.ChatJoinRequest.From.ID)
+	fmt.Println("user join request declined", fromID)
 }

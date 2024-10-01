@@ -3,6 +3,7 @@ package commands
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"net/http"
 	"regexp"
@@ -31,11 +32,15 @@ func (c *Commands) TLDR(ctx context.Context, b *bot.Bot, update *models.Update) 
 
 	link := rxStrict.FindString(update.Message.Text)
 	if link == "" {
-		b.SendMessage(ctx, &bot.SendMessageParams{
+		_, errSendMessage := b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID:    update.Message.Chat.ID,
 			Text:      "Бот заберёт статью по ссылке и сделает её краткое описание.",
 			ParseMode: models.ParseModeHTML,
 		})
+
+		if errSendMessage != nil {
+			fmt.Println("errSendMessage (/tldr): ", errSendMessage)
+		}
 
 		return
 	}
@@ -91,9 +96,13 @@ func (c *Commands) TLDR(ctx context.Context, b *bot.Bot, update *models.Update) 
 		text = string([]rune(text)[:4000])
 	}
 
-	b.SendMessage(ctx, &bot.SendMessageParams{
+	_, errSendMessage := b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:    update.Message.Chat.ID,
 		Text:      text,
 		ParseMode: models.ParseModeHTML,
 	})
+
+	if errSendMessage != nil {
+		fmt.Println("errSendMessage (/tldr): ", errSendMessage)
+	}
 }

@@ -10,9 +10,13 @@ import (
 
 // Respond with the ID of the user who sent the message with /id
 func (c *Commands) Id(ctx context.Context, b *bot.Bot, update *models.Update) {
-	b.SendMessage(ctx, &bot.SendMessageParams{
+	_, errSendMessage := b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID:    update.Message.Chat.ID,
 		Text:      fmt.Sprintf("Your ID is %d, chat id is %d", update.Message.From.ID, update.Message.Chat.ID),
 		ParseMode: models.ParseModeHTML,
 	})
+
+	if errSendMessage != nil {
+		fmt.Println("errSendMessage (/id): ", errSendMessage)
+	}
 }
