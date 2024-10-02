@@ -123,6 +123,7 @@ func (s *Sender) handler(ctx context.Context, b *bot.Bot, update *models.Update)
 
 		if !slices.Contains(s.config.AllowedChatIDsList, update.Message.Chat.ID) {
 			s.lgr.Info(fmt.Sprintf("Chat ID %d is not in allowed list", update.Message.Chat.ID))
+
 			return
 		}
 

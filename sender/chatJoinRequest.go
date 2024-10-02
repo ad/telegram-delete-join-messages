@@ -21,8 +21,12 @@ func (s *Sender) HandleChatJoinRequest(ctx context.Context, b *bot.Bot, update *
 		return
 	}
 
-	fmt.Println(err)
-	fmt.Println(vote)
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	fmt.Println(formatUpdateForLog(update), "room number", vote)
+
 	if vote != 0 {
 		// TODO: add ban check
 		_, errApproveChatJoinRequest := b.ApproveChatJoinRequest(
