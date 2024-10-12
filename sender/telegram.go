@@ -51,7 +51,7 @@ func InitSender(lgr *slog.Logger, config *conf.Config, db *sql.DB) (*Sender, err
 			// "chat_migration",
 			// "chosen_inline_result",
 			// "edited_channel_post",
-			// "edited_message",
+			"edited_message",
 			// "inline_query",
 			"message",
 			// "message_reaction",

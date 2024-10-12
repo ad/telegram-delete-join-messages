@@ -33,7 +33,31 @@ func formatUpdateForLog(message *bm.Update) string {
 
 func formatMessageForLog(message *bm.Update) string {
 	if message.Message.Chat.Type == "private" {
-		return fmt.Sprintf("Message from %d (%s): %s", message.Message.Chat.ID, getChatDataFromMessage(&message.Message.Chat), message.Message.Text)
+		if message.Message.Caption != "" {
+			return fmt.Sprintf(
+				"Private Message from %d (%s) -> %d in (https://t.me/%s/%d): Photo with message: %s",
+				message.Message.From.ID,
+				getUserDataFromMessage(message.Message.From),
+				message.Message.Chat.ID,
+				message.Message.Chat.Username,
+				message.Message.ID,
+				message.Message.Caption,
+			)
+		}
+
+		return fmt.Sprintf("Private Message from %d (%s): %s", message.Message.Chat.ID, getChatDataFromMessage(&message.Message.Chat), message.Message.Text)
+	}
+
+	if message.Message.Caption != "" {
+		return fmt.Sprintf(
+			"Message from %d (%s) -> %d in (https://t.me/%s/%d): Photo with message: %s",
+			message.Message.From.ID,
+			getUserDataFromMessage(message.Message.From),
+			message.Message.Chat.ID,
+			message.Message.Chat.Username,
+			message.Message.ID,
+			message.Message.Caption,
+		)
 	}
 
 	return fmt.Sprintf(
@@ -49,7 +73,31 @@ func formatMessageForLog(message *bm.Update) string {
 
 func formatMessageEditForLog(message *bm.Update) string {
 	if message.EditedMessage.Chat.Type == "private" {
-		return fmt.Sprintf("MessageEdit from %d (%s): %s", message.EditedMessage.Chat.ID, getChatDataFromMessage(&message.EditedMessage.Chat), message.EditedMessage.Text)
+		if message.EditedMessage.Caption != "" {
+			return fmt.Sprintf(
+				"Private MessageEdit from %d (%s) -> %d in (https://t.me/%s/%d): Photo with message: %s",
+				message.EditedMessage.From.ID,
+				getUserDataFromMessage(message.EditedMessage.From),
+				message.EditedMessage.Chat.ID,
+				message.EditedMessage.Chat.Username,
+				message.EditedMessage.ID,
+				message.EditedMessage.Caption,
+			)
+		}
+
+		return fmt.Sprintf("Private MessageEdit from %d (%s): %s", message.EditedMessage.Chat.ID, getChatDataFromMessage(&message.EditedMessage.Chat), message.EditedMessage.Text)
+	}
+
+	if message.EditedMessage.Caption != "" {
+		return fmt.Sprintf(
+			"MessageEdit from %d (%s) -> %d in (https://t.me/%s/%d): Photo with message: %s",
+			message.EditedMessage.From.ID,
+			getUserDataFromMessage(message.EditedMessage.From),
+			message.EditedMessage.Chat.ID,
+			message.EditedMessage.Chat.Username,
+			message.EditedMessage.ID,
+			message.EditedMessage.Caption,
+		)
 	}
 
 	return fmt.Sprintf(
