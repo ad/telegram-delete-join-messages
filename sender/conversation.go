@@ -135,6 +135,9 @@ func (s *Sender) towerHandler(ctx context.Context, b *bot.Bot, update *models.Up
 	allowedTowers := []string{
 		"1", "2",
 		"б", "Б", "к", "К",
+		"Башня Б", "Башня К",
+		"Башня б", "Башня к",
+		"башня б", "башня к",
 		"первой", "второй",
 		"Первой", "Второй",
 		"первого", "второго",
@@ -186,6 +189,8 @@ func (s *Sender) zabavaHandler(ctx context.Context, b *bot.Bot, update *models.U
 	allowedTowers := []string{
 		"забава", "Забава",
 		"zabava", "Zabava",
+		"Крошка", "крошка",
+		"Кроха", "кроха",
 		"забава сад", "Забава сад",
 	}
 
