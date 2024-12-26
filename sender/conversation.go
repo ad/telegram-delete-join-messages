@@ -135,6 +135,7 @@ func (s *Sender) towerHandler(ctx context.Context, b *bot.Bot, update *models.Up
 	allowedTowers := []string{
 		"1", "2",
 		"б", "Б", "к", "К",
+		"Башня 1", "Башня 2",
 		"Башня Б", "Башня К",
 		"Башня б", "Башня к",
 		"башня б", "башня к",
