@@ -75,7 +75,7 @@ func InitSender(lgr *slog.Logger, config *conf.Config, db *sql.DB) (*Sender, err
 	// Create a conversation handler and add stages
 	convHandler := NewConversationHandler()
 	convHandler.AddStage(towerStage, sender.towerHandler)
-	convHandler.AddStage(zabavaStage, sender.zabavaHandler)
+	convHandler.AddStage(chairmanStage, sender.chairmanHandler)
 	convHandler.AddStage(roomStage, sender.roomHandler)
 
 	sender.convHandler = convHandler

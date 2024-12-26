@@ -15,7 +15,7 @@ import (
 
 const (
 	towerStage = iota // Definition of the first name stage = 0
-	zabavaStage
+	chairmanStage
 	roomStage
 )
 
@@ -158,12 +158,13 @@ func (s *Sender) towerHandler(ctx context.Context, b *bot.Bot, update *models.Up
 		return
 	}
 
-	s.convHandler.SetActiveStage(zabavaStage, int(update.Message.From.ID)) //change stage
+	s.convHandler.SetActiveStage(chairmanStage, int(update.Message.From.ID)) //change stage
 	// s.convHandler.End() // end the conversation
 
 	_, errSendMessage := b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: update.Message.Chat.ID,
-		Text:   "✅ Хорошо, похоже мы соседи...\n\n👶 Как называется детский сад, который находится в нашем доме?",
+		// Text:   "✅ Хорошо, похоже мы соседи...\n\n👶 Как называется детский сад, который находится в нашем доме?",
+		Text: "✅ Хорошо, похоже мы соседи...\n\n👴 А какая фамилия у нашего председателя?",
 	})
 
 	if errSendMessage != nil {
@@ -213,6 +214,49 @@ func (s *Sender) zabavaHandler(ctx context.Context, b *bot.Bot, update *models.U
 
 	if errSendMessage != nil {
 		fmt.Println("errSendMessage (/zabava): ", errSendMessage)
+	}
+}
+
+// Handle the chairman stage to get the user's chairman
+func (s *Sender) chairmanHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+	if update.Message == nil {
+		return
+	}
+
+	// check if message is private
+	if update.Message.Chat.Type != "private" {
+		return
+	}
+
+	allowedTowers := []string{
+		"пащенко", "Пащенко",
+	}
+
+	tower := update.Message.Text
+
+	if !slices.Contains(allowedTowers, tower) {
+		_, errSendMessage := b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: update.Message.Chat.ID,
+			Text:   "❌ Вы дали неправильный ответ. Если вы не знаете ответа, то вам сюда не надо.",
+		})
+
+		if errSendMessage != nil {
+			fmt.Println("errSendMessage (/chairman): ", errSendMessage)
+		}
+
+		return
+	}
+
+	s.convHandler.SetActiveStage(roomStage, int(update.Message.From.ID)) //change stage to last name stage
+	// s.convHandler.End() // end the conversation
+
+	_, errSendMessage := b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID: update.Message.Chat.ID,
+		Text:   "✅ Хорошо, мы соседи.\n\n🚪 Назовите номер квартиры (не бойтесь, это просто проверка, чтобы быть уверенными, что вы не просто проходили мимо).",
+	})
+
+	if errSendMessage != nil {
+		fmt.Println("errSendMessage (/chairman): ", errSendMessage)
 	}
 }
 
