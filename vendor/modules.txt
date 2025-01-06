@@ -99,6 +99,6 @@ modernc.org/strutil
 # modernc.org/token v1.1.0
 ## explicit
 modernc.org/token
-# mvdan.cc/xurls/v2 v2.5.0
-## explicit; go 1.19
+# mvdan.cc/xurls/v2 v2.6.0
+## explicit; go 1.22.0
 mvdan.cc/xurls/v2
