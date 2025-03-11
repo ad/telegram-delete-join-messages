@@ -235,7 +235,7 @@ func (s *Sender) chairmanHandler(ctx context.Context, b *bot.Bot, update *models
 	}
 
 	allowedTowers := []string{
-		"пащенко", "Пащенко",
+		"гриненко", "Гриненко", "ГРИНЕНКО",
 	}
 
 	tower := update.Message.Text
