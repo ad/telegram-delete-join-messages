@@ -121,10 +121,17 @@ func (s *Sender) startConversation(ctx context.Context, b *bot.Bot, update *mode
 
 	s.convHandler.SetActiveStage(0, int(update.Message.From.ID)) //start conversation
 
+	// Get the first stage of the conversation
+	conversation, err := s.GetConversationById(0)
+	if err != nil {
+		fmt.Println("errGetConversation (/start): ", err)
+		return
+	}
+
 	// Ask user to enter their name
 	_, errSendMessage := b.SendMessage(ctx, &bot.SendMessageParams{
 		ChatID: update.Message.Chat.ID,
-		Text:   "📝 Пожалуйста, ответьте на пару вопросов.\n\n🏬 В какой башне вы живете?",
+		Text:   conversation.Question,
 	})
 
 	if errSendMessage != nil {
@@ -154,12 +161,15 @@ func (s *Sender) stageHandler(ctx context.Context, b *bot.Bot, update *models.Up
 	}
 
 	currentStageId := s.convHandler.GetActiveStage(int(update.Message.From.ID))
+	// s.lgr.Info(fmt.Sprintf("currentStageId: %d", currentStageId))
 
 	conversation, err := s.GetConversationById(currentStageId)
 	if err != nil {
 		fmt.Println("errGetConversation (/stageHandler): ", err)
 		return
 	}
+
+	// s.lgr.Info(fmt.Sprintf("currentStageId: %v", conversation))
 
 	// split conversation.variants by comma
 	variants := strings.Split(conversation.Variants, ",")
@@ -182,7 +192,7 @@ func (s *Sender) stageHandler(ctx context.Context, b *bot.Bot, update *models.Up
 		return
 	}
 
-	stagesCount := NewConversationHandler().GetStagesCount()
+	stagesCount := s.convHandler.GetStagesCount()
 
 	if currentStageId+1 >= stagesCount {
 		result := s.lastStep(ctx, b, update, userAnswer, conversation.Answer)
@@ -267,7 +277,7 @@ func (s *Sender) GetVoteFromDBForUser(ctx context.Context, b *bot.Bot, chatID, u
 		return vote, err
 	}
 
-	return 0, err
+	return 0, nil
 }
 
 // Handle /cancel command to end the conversation
