@@ -1,5 +1,5 @@
 {
-  "version": "0.5.11",
+  "version": "0.6.0",
   "name": "telegram-delete-join-messages",
   "slug": "telegram-delete-join-messages",
   "description": "",
@@ -19,6 +19,7 @@
     "ALLOWED_CHAT_IDS": "",
     "INVITE_LINK": "",
     "YANDEX_TOKEN": "",
+    "CONVERSATIONS": [],
     "DB_PATH": "/config/telegram-delete-join-messages.db",
     "DEBUG": false
   },
@@ -32,6 +33,13 @@
     "ALLOWED_CHAT_IDS": "str",
     "INVITE_LINK": "str?",
     "YANDEX_TOKEN": "str?",
+    "CONVERSATIONS": [
+      {
+        "question": "str",
+        "variants": "str",
+        "answer": "str"
+      }
+    ],
     "DB_PATH": "str",
     "DEBUG": "bool"
   }

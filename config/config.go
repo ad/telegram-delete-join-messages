@@ -33,9 +33,17 @@ type Config struct {
 
 	YandexToken string `json:"YANDEX_TOKEN"`
 
+	Conversations []Conversation `json:"CONVERSATIONS"`
+
 	DB_PATH string `json:"DB_PATH"`
 
 	Debug bool `json:"DEBUG"`
+}
+
+type Conversation struct {
+	Question string `json:"question"`
+	Variants string `json:"variants"`
+	Answer   string `json:"answer"`
 }
 
 func InitConfig(args []string) (*Config, error) {
@@ -92,6 +100,16 @@ func InitConfig(args []string) (*Config, error) {
 		flags.StringVar(&config.DB_PATH, "dbPath", lookupEnvOrString("DB_PATH", config.DB_PATH), "DB_PATH")
 
 		flags.BoolVar(&config.Debug, "debug", lookupEnvOrBool("DEBUG", config.Debug), "Debug")
+
+		// get conversations from flags or env
+		var conversations string
+		flags.StringVar(&conversations, "conversations", "", "CONVERSATIONS")
+		conversations = lookupEnvOrString("CONVERSATIONS", conversations)
+		if conversations != "" {
+			if err := json.Unmarshal([]byte(conversations), &config.Conversations); err != nil {
+				return nil, err
+			}
+		}
 
 		if err := flags.Parse(args[1:]); err != nil {
 			return nil, err

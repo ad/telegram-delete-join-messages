@@ -44,7 +44,7 @@ func (s *Sender) HandleChatJoinRequest(ctx context.Context, b *bot.Bot, update *
 		return
 	}
 
-	s.convHandler.SetActiveStage(towerStage, int(fromID)) //start the tower stage
+	s.convHandler.SetActiveStage(0, int(fromID)) //start conversation
 
 	_, errSendMessage := b.SendMessage(
 		ctx,

@@ -6,17 +6,16 @@ import (
 	"fmt"
 	"log"
 	"slices"
-	"strconv"
+	"strings"
 
+	"github.com/ad/telegram-delete-join-messages/config"
 	"github.com/ad/telegram-delete-join-messages/data"
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 )
 
 const (
-	towerStage = iota // Definition of the first name stage = 0
-	chairmanStage
-	roomStage
+	UserBadAnswer = "❌ Вы дали неправильный ответ.\nЕсли вы не знаете ответа, то вам сюда не надо."
 )
 
 // ConversationHandler is a structure that manages conversation functions.
@@ -52,6 +51,18 @@ func (c *ConversationHandler) SetActiveStage(stageId int, userID int) {
 	c.currentStageId[userID] = stageId
 }
 
+func (c *ConversationHandler) GetActiveStage(userID int) int {
+	if _, ok := c.active[userID]; ok {
+		return c.currentStageId[userID]
+	}
+
+	return 0
+}
+
+func (c *ConversationHandler) GetStagesCount() int {
+	return len(c.stages)
+}
+
 // CallStage calls the function of the active conversation stage.
 func (c *ConversationHandler) CallStage(ctx context.Context, b *bot.Bot, update *models.Update) {
 	if update.Message == nil {
@@ -78,7 +89,7 @@ func (c *ConversationHandler) End(userID int) {
 	c.active[userID] = false
 }
 
-// Handle /start command to start getting the user's tower
+// Handle /start command to start conversation
 func (s *Sender) startConversation(ctx context.Context, b *bot.Bot, update *models.Update) {
 	if update.Message == nil {
 		return
@@ -108,7 +119,7 @@ func (s *Sender) startConversation(ctx context.Context, b *bot.Bot, update *mode
 		return
 	}
 
-	s.convHandler.SetActiveStage(towerStage, int(update.Message.From.ID)) //start the tower stage
+	s.convHandler.SetActiveStage(0, int(update.Message.From.ID)) //start conversation
 
 	// Ask user to enter their name
 	_, errSendMessage := b.SendMessage(ctx, &bot.SendMessageParams{
@@ -121,8 +132,18 @@ func (s *Sender) startConversation(ctx context.Context, b *bot.Bot, update *mode
 	}
 }
 
-// Handle the tower stage to get the user's tower
-func (s *Sender) towerHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
+func (s *Sender) GetConversationById(index int) (*config.Conversation, error) {
+	conversations := s.config.Conversations
+
+	if index < 0 || index >= len(conversations) {
+		return nil, fmt.Errorf("index out of range")
+	}
+
+	return &conversations[index], nil
+}
+
+// Handle stages
+func (s *Sender) stageHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
 	if update.Message == nil {
 		return
 	}
@@ -132,27 +153,26 @@ func (s *Sender) towerHandler(ctx context.Context, b *bot.Bot, update *models.Up
 		return
 	}
 
-	allowedTowers := []string{
-		"1", "2",
-		"б", "Б", "к", "К",
-		"Башня 1", "Башня 2",
-		"Башня Б", "Башня К",
-		"Башня б", "Башня к",
-		"башня б", "башня к",
-		"первой", "второй",
-		"Первой", "Второй",
-		"первого", "второго",
-		"Первого", "Второго",
-		"байконурская", "королева", "королёва",
-		"Байконурская", "Королева", "Королёва",
+	currentStageId := s.convHandler.GetActiveStage(int(update.Message.From.ID))
+
+	conversation, err := s.GetConversationById(currentStageId)
+	if err != nil {
+		fmt.Println("errGetConversation (/stageHandler): ", err)
+		return
 	}
 
-	tower := update.Message.Text
+	// split conversation.variants by comma
+	variants := strings.Split(conversation.Variants, ",")
+	for i := range variants {
+		variants[i] = strings.ToUpper(strings.TrimSpace(variants[i]))
+	}
 
-	if !slices.Contains(allowedTowers, tower) {
+	userAnswer := strings.TrimSpace(update.Message.Text)
+
+	if !slices.Contains(variants, strings.ToUpper(userAnswer)) {
 		_, errSendMessage := b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
-			Text:   "❌ Вы дали неправильный ответ.\nЕсли вы не знаете ответа, то вам сюда не надо.",
+			Text:   UserBadAnswer,
 		})
 
 		if errSendMessage != nil {
@@ -162,130 +182,68 @@ func (s *Sender) towerHandler(ctx context.Context, b *bot.Bot, update *models.Up
 		return
 	}
 
-	s.convHandler.SetActiveStage(chairmanStage, int(update.Message.From.ID)) //change stage
-	// s.convHandler.End() // end the conversation
+	stagesCount := NewConversationHandler().GetStagesCount()
 
-	_, errSendMessage := b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: update.Message.Chat.ID,
-		// Text:   "✅ Хорошо, похоже мы соседи...\n\n👶 Как называется детский сад, который находится в нашем доме?",
-		Text: "✅ Хорошо, похоже мы соседи...\n\n👴 А какая фамилия у нашего председателя?",
-	})
+	if currentStageId+1 >= stagesCount {
+		result := s.lastStep(ctx, b, update, userAnswer, conversation.Answer)
+		if result {
+			s.convHandler.End(int(update.Message.From.ID)) // end the conversation
+		}
+	} else {
+		s.convHandler.SetActiveStage(currentStageId+1, int(update.Message.From.ID)) //change stage
 
-	if errSendMessage != nil {
-		fmt.Println("errSendMessage (/tower): ", errSendMessage)
-	}
-}
-
-// Handle the zabava stage to get the user's zabava
-func (s *Sender) zabavaHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	if update.Message == nil {
-		return
-	}
-
-	// check if message is private
-	if update.Message.Chat.Type != "private" {
-		return
-	}
-
-	allowedTowers := []string{
-		"забава", "Забава",
-		"zabava", "Zabava",
-		"Крошка", "крошка",
-		"Кроха", "кроха",
-		"забава сад", "Забава сад",
-	}
-
-	tower := update.Message.Text
-
-	if !slices.Contains(allowedTowers, tower) {
 		_, errSendMessage := b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
-			Text:   "❌ Вы дали неправильный ответ. Если вы не знаете ответа, то вам сюда не надо.",
+			Text:   conversation.Answer,
 		})
 
 		if errSendMessage != nil {
-			fmt.Println("errSendMessage (/zabava): ", errSendMessage)
+			fmt.Println("errSendMessage (/tower): ", errSendMessage)
 		}
-
-		return
-	}
-
-	s.convHandler.SetActiveStage(roomStage, int(update.Message.From.ID)) //change stage to last name stage
-	// s.convHandler.End() // end the conversation
-
-	_, errSendMessage := b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: update.Message.Chat.ID,
-		Text:   "✅ Хорошо, мы соседи.\n\n🚪 Назовите номер квартиры (не бойтесь, это просто проверка, чтобы быть уверенными, что вы не просто проходили мимо).",
-	})
-
-	if errSendMessage != nil {
-		fmt.Println("errSendMessage (/zabava): ", errSendMessage)
-	}
-}
-
-// Handle the chairman stage to get the user's chairman
-func (s *Sender) chairmanHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	if update.Message == nil {
-		return
-	}
-
-	// check if message is private
-	if update.Message.Chat.Type != "private" {
-		return
-	}
-
-	allowedTowers := []string{
-		"гриненко", "Гриненко", "ГРИНЕНКО",
-	}
-
-	tower := update.Message.Text
-
-	if !slices.Contains(allowedTowers, tower) {
-		_, errSendMessage := b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
-			Text:   "❌ Вы дали неправильный ответ. Если вы не знаете ответа, то вам сюда не надо.",
-		})
-
-		if errSendMessage != nil {
-			fmt.Println("errSendMessage (/chairman): ", errSendMessage)
-		}
-
-		return
-	}
-
-	s.convHandler.SetActiveStage(roomStage, int(update.Message.From.ID)) //change stage to last name stage
-	// s.convHandler.End() // end the conversation
-
-	_, errSendMessage := b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: update.Message.Chat.ID,
-		Text:   "✅ Хорошо, мы соседи.\n\n🚪 Назовите номер квартиры (не бойтесь, это просто проверка, чтобы быть уверенными, что вы не просто проходили мимо).",
-	})
-
-	if errSendMessage != nil {
-		fmt.Println("errSendMessage (/chairman): ", errSendMessage)
 	}
 }
 
 // Handle the room stage to get the user's room
-func (s *Sender) roomHandler(ctx context.Context, b *bot.Bot, update *models.Update) {
-	if update.Message == nil {
-		return
+func (s *Sender) lastStep(ctx context.Context, b *bot.Bot, update *models.Update, userInput, answer string) bool {
+	_, err := s.GetVoteFromDBForUser(ctx, b, update.Message.Chat.ID, update.Message.From.ID)
+	if err != nil {
+		s.lgr.Info(fmt.Sprintf("roomHandler GetVoteFromDBForUser (%s): %s", userInput, err.Error()))
+
+		return false
 	}
 
-	// check if message is private
-	if update.Message.Chat.Type != "private" {
-		return
+	user_data := fmt.Sprintf("id %d %s %s %s", update.Message.From.ID, update.Message.From.FirstName, update.Message.From.LastName, update.Message.From.Username)
+
+	err = data.AddVote(s.DB, update.Message.Chat.ID, update.Message.From.ID, userInput, user_data)
+	if err != nil {
+		s.lgr.Info(fmt.Sprintf("roomHandler AddVote (%s): %s", userInput, err.Error()))
+
+		return false
 	}
 
-	// check room presense in db
-	room := update.Message.Text
+	if s.config.InviteLink != "" {
+		answer = answer + "\n🤫 Теперь перейдите по ссылке: " + s.config.InviteLink
+	}
 
-	vote, err := data.CheckVote(s.DB, update.Message.Chat.ID, update.Message.From.ID)
+	_, errSendMessage := b.SendMessage(ctx, &bot.SendMessageParams{
+		ChatID: update.Message.Chat.ID,
+		Text:   answer,
+	})
+
+	if errSendMessage != nil {
+		fmt.Println("errSendMessage (/room): ", errSendMessage)
+	}
+
+	return true
+}
+
+func (s *Sender) GetVoteFromDBForUser(ctx context.Context, b *bot.Bot, chatID, userID int64) (int, error) {
+	vote, err := data.CheckVote(s.DB, chatID, userID)
 	if err != nil && err != sql.ErrNoRows {
-		s.lgr.Info(fmt.Sprintf("roomHandler CheckVote(%s): %s", room, err.Error()))
+		s.lgr.Info(fmt.Sprintf("roomHandler CheckVote: %s", err.Error()))
 
 		_, errSendMessage := b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
+			ChatID: chatID,
 			Text:   "❌ Произошла ошибка при проверке ответа. Попробуйте еще раз",
 		})
 
@@ -293,12 +251,12 @@ func (s *Sender) roomHandler(ctx context.Context, b *bot.Bot, update *models.Upd
 			fmt.Println("errSendMessage (/room): ", errSendMessage)
 		}
 
-		return
+		return 0, err
 	}
 
 	if vote != 0 {
 		_, errSendMessage := b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
+			ChatID: chatID,
 			Text:   "✅ Вас уже записали",
 		})
 
@@ -306,50 +264,10 @@ func (s *Sender) roomHandler(ctx context.Context, b *bot.Bot, update *models.Upd
 			fmt.Println("errSendMessage (/room): ", errSendMessage)
 		}
 
-		return
+		return vote, err
 	}
 
-	allowedRoomsMin := 1
-	allowedRoomsMax := 344
-
-	if roomInt, err := strconv.Atoi(room); err != nil || roomInt < allowedRoomsMin || roomInt > allowedRoomsMax {
-		_, errSendMessage := b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: update.Message.Chat.ID,
-			Text:   "❌ Извините, но такой квартиры у нас нет. Попробуйте еще раз, но после нескольких неправильных ответов вас заблокируют.",
-		})
-
-		if errSendMessage != nil {
-			fmt.Println("errSendMessage (/room): ", errSendMessage)
-		}
-
-		return
-	}
-
-	s.convHandler.End(int(update.Message.From.ID)) // end the conversation
-
-	user_data := fmt.Sprintf("id %d %s %s %s", update.Message.From.ID, update.Message.From.FirstName, update.Message.From.LastName, update.Message.From.Username)
-
-	err = data.AddVote(s.DB, update.Message.Chat.ID, update.Message.From.ID, room, user_data)
-	if err != nil {
-		s.lgr.Info(fmt.Sprintf("roomHandler AddVote (%s): %s", room, err.Error()))
-
-		return
-	}
-
-	message := "🫶🏻 Спасибо, записали"
-
-	if s.config.InviteLink != "" {
-		message = message + "\n🤫 Теперь перейдите по ссылке: " + s.config.InviteLink
-	}
-
-	_, errSendMessage := b.SendMessage(ctx, &bot.SendMessageParams{
-		ChatID: update.Message.Chat.ID,
-		Text:   message,
-	})
-
-	if errSendMessage != nil {
-		fmt.Println("errSendMessage (/room): ", errSendMessage)
-	}
+	return 0, err
 }
 
 // Handle /cancel command to end the conversation
