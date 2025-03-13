@@ -12,7 +12,7 @@ func formatUpdateForLog(message *bm.Update) string {
 	case message.Message != nil:
 		return formatMessageForLog(message)
 	case message.EditedMessage != nil:
-		return formatMessageEditForLog(message)
+		return formatMEForLog(message)
 	case message.ChannelPost != nil:
 		return formatChannelpostForLog(message)
 	case message.MessageReaction != nil:
@@ -35,94 +35,73 @@ func formatMessageForLog(message *bm.Update) string {
 	if message.Message.Chat.Type == "private" {
 		if message.Message.Caption != "" {
 			return fmt.Sprintf(
-				"Private Message from %d (%s) -> %d in (https://t.me/%s/%d): Photo with message: %s",
+				"PM from %d (%s): Photo with message: %s",
 				message.Message.From.ID,
 				getUserDataFromMessage(message.Message.From),
-				message.Message.Chat.ID,
-				message.Message.Chat.Username,
-				message.Message.ID,
 				message.Message.Caption,
 			)
 		}
 
-		return fmt.Sprintf("Private Message from %d (%s): %s", message.Message.Chat.ID, getChatDataFromMessage(&message.Message.Chat), message.Message.Text)
+		return fmt.Sprintf("PM from %d (%s): %s", message.Message.Chat.ID, getChatDataFromMessage(&message.Message.Chat), message.Message.Text)
 	}
 
 	if message.Message.Caption != "" {
 		return fmt.Sprintf(
-			"Message from %d (%s) -> %d in (https://t.me/%s/%d): Photo with message: %s",
+			"M from %d (%s): Photo with message: %s",
 			message.Message.From.ID,
 			getUserDataFromMessage(message.Message.From),
-			message.Message.Chat.ID,
-			message.Message.Chat.Username,
-			message.Message.ID,
 			message.Message.Caption,
 		)
 	}
 
 	return fmt.Sprintf(
-		"Message from %d (%s) -> %d in (https://t.me/%s/%d): %s",
+		"M from %d (%s): %s",
 		message.Message.From.ID,
 		getUserDataFromMessage(message.Message.From),
-		message.Message.Chat.ID,
-		message.Message.Chat.Username,
-		message.Message.ID,
 		message.Message.Text,
 	)
 }
 
-func formatMessageEditForLog(message *bm.Update) string {
+func formatMEForLog(message *bm.Update) string {
 	if message.EditedMessage.Chat.Type == "private" {
 		if message.EditedMessage.Caption != "" {
 			return fmt.Sprintf(
-				"Private MessageEdit from %d (%s) -> %d in (https://t.me/%s/%d): Photo with message: %s",
+				"PME from %d (%s): Photo with message: %s",
 				message.EditedMessage.From.ID,
 				getUserDataFromMessage(message.EditedMessage.From),
-				message.EditedMessage.Chat.ID,
-				message.EditedMessage.Chat.Username,
-				message.EditedMessage.ID,
 				message.EditedMessage.Caption,
 			)
 		}
 
-		return fmt.Sprintf("Private MessageEdit from %d (%s): %s", message.EditedMessage.Chat.ID, getChatDataFromMessage(&message.EditedMessage.Chat), message.EditedMessage.Text)
+		return fmt.Sprintf("PME from %d (%s): %s", message.EditedMessage.Chat.ID, getChatDataFromMessage(&message.EditedMessage.Chat), message.EditedMessage.Text)
 	}
 
 	if message.EditedMessage.Caption != "" {
 		return fmt.Sprintf(
-			"MessageEdit from %d (%s) -> %d in (https://t.me/%s/%d): Photo with message: %s",
+			"ME from %d (%s): Photo with message: %s",
 			message.EditedMessage.From.ID,
 			getUserDataFromMessage(message.EditedMessage.From),
-			message.EditedMessage.Chat.ID,
-			message.EditedMessage.Chat.Username,
-			message.EditedMessage.ID,
 			message.EditedMessage.Caption,
 		)
 	}
 
 	return fmt.Sprintf(
-		"MessageEdit from %d (%s) -> %d in (https://t.me/%s/%d): %s",
+		"ME from %d (%s): %s",
 		message.EditedMessage.From.ID,
 		getUserDataFromMessage(message.EditedMessage.From),
-		message.EditedMessage.Chat.ID,
-		message.EditedMessage.Chat.Username,
-		message.EditedMessage.ID,
 		message.EditedMessage.Text,
 	)
 }
 
 func formatChannelpostForLog(message *bm.Update) string {
 	if message.ChannelPost.Chat.Type == "private" {
-		return fmt.Sprintf("ChannelPost from %d (%s): %s", message.ChannelPost.Chat.ID, getChatDataFromMessage(&message.ChannelPost.Chat), message.ChannelPost.Text)
+		return fmt.Sprintf("CP from %d (%s): %s", message.ChannelPost.Chat.ID, getChatDataFromMessage(&message.ChannelPost.Chat), message.ChannelPost.Text)
 	}
 
 	return fmt.Sprintf(
-		"ChannelPost from %d (%s) -> %d in (https://t.me/%s/%d): %s",
+		"CP from %d (%s): %s",
 		message.ChannelPost.From.ID,
 		getUserDataFromMessage(message.ChannelPost.From),
-		message.ChannelPost.Chat.ID,
-		message.ChannelPost.Chat.Username,
-		message.ChannelPost.ID,
 		message.ChannelPost.Text,
 	)
 }
@@ -138,23 +117,23 @@ func formatMessageReactionForLog(message *bm.Update) string {
 	}
 
 	if message.MessageReaction.Chat.Type == "private" {
-		return fmt.Sprintf("MessageReaction %s -> %s, by %d (%s)", strings.Join(oldEmoji, ","), strings.Join(newEmoji, ","), message.MessageReaction.User.ID, getChatDataFromMessage(&message.MessageReaction.Chat))
+		return fmt.Sprintf("MR %s -> %s, by %d (%s)", strings.Join(oldEmoji, ","), strings.Join(newEmoji, ","), message.MessageReaction.User.ID, getChatDataFromMessage(&message.MessageReaction.Chat))
 	}
 
-	return fmt.Sprintf("MessageReaction %s -> %s, by %d (%s) in (https://t.me/%s/%d)", strings.Join(oldEmoji, ","), strings.Join(newEmoji, ","), message.MessageReaction.User.ID, getUserDataFromMessage(message.MessageReaction.User), message.MessageReaction.Chat.Username, message.MessageReaction.MessageID)
+	return fmt.Sprintf("MR %s -> %s, by %d (%s) in (https://t.me/%s/%d)", strings.Join(oldEmoji, ","), strings.Join(newEmoji, ","), message.MessageReaction.User.ID, getUserDataFromMessage(message.MessageReaction.User), message.MessageReaction.Chat.Username, message.MessageReaction.MessageID)
 }
 
 func formatCallbackQueryForLog(message *bm.Update) string {
-	return fmt.Sprintf("CallbackQuery %s", message.CallbackQuery.Data)
+	return fmt.Sprintf("CQ %s", message.CallbackQuery.Data)
 }
 
 func formatMessageReactionCountForLog(message *bm.Update) string {
-	return fmt.Sprintf("MessageReactionCount %#v", message.MessageReactionCount)
+	return fmt.Sprintf("MRC %#v", message.MessageReactionCount)
 }
 
 func formatChatJoinRequestForLog(message *bm.Update) string {
 	return fmt.Sprintf(
-		"ChatJoinRequest from %d (%s) -> %d",
+		"CJR from %d (%s) -> %d",
 		message.ChatJoinRequest.From.ID,
 		getUserDataFromMessage(&message.ChatJoinRequest.From),
 		message.ChatJoinRequest.Chat.ID,
@@ -166,7 +145,18 @@ func getChatDataFromMessage(user *bm.Chat) string {
 		return "Unknown"
 	}
 
-	return strings.Join([]string{user.FirstName, user.LastName, user.Username}, " ")
+	fields := []string{}
+	for _, field := range []string{user.FirstName, user.LastName, user.Username} {
+		if field != "" {
+			fields = append(fields, field)
+		}
+	}
+
+	if len(fields) == 0 {
+		return "Unknown"
+	}
+
+	return strings.Join(fields, " ")
 }
 
 func getUserDataFromMessage(user *bm.User) string {
@@ -174,5 +164,15 @@ func getUserDataFromMessage(user *bm.User) string {
 		return "Unknown"
 	}
 
-	return strings.Join([]string{user.FirstName, user.LastName, user.Username}, " ")
+	fields := []string{}
+	for _, field := range []string{user.FirstName, user.LastName, user.Username} {
+		if field != "" {
+			fields = append(fields, field)
+		}
+	}
+
+	if len(fields) == 0 {
+		return "Unknown"
+	}
+	return strings.Join(fields, " ")
 }
