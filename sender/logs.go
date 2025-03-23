@@ -24,7 +24,6 @@ func formatUpdateForLog(message *bm.Update) string {
 	case message.ChatJoinRequest != nil:
 		return formatChatJoinRequestForLog(message)
 	}
-
 	// jsonData, _ := json.Marshal(message)
 	// s.lgr.Debug(fmt.Sprintf("Message %s", string(jsonData)))
 
@@ -51,6 +50,69 @@ func formatMessageForLog(message *bm.Update) string {
 			message.Message.From.ID,
 			getUserDataFromMessage(message.Message.From),
 			message.Message.Caption,
+		)
+	}
+
+	if message.Message.ForumTopicCreated != nil {
+		return fmt.Sprintf(
+			"M from %d (%s): Forum topic %q created",
+			message.Message.From.ID,
+			getUserDataFromMessage(message.Message.From),
+			message.Message.ReplyToMessage.ForumTopicCreated.Name,
+		)
+	}
+
+	if message.Message.ForumTopicReopened != nil {
+		return fmt.Sprintf(
+			"M from %d (%s): Forum topic reopened",
+			message.Message.From.ID,
+			getUserDataFromMessage(message.Message.From),
+			// message.Message.ReplyToMessage.ForumTopicReopened.Name,
+		)
+	}
+
+	if message.Message.ForumTopicEdited != nil {
+		return fmt.Sprintf(
+			"M from %d (%s): Forum topic %q edited",
+			message.Message.From.ID,
+			getUserDataFromMessage(message.Message.From),
+			message.Message.ReplyToMessage.ForumTopicCreated.Name,
+		)
+	}
+
+	if message.Message.ForumTopicClosed != nil {
+		return fmt.Sprintf(
+			"M from %d (%s): Forum topic closed",
+			message.Message.From.ID,
+			getUserDataFromMessage(message.Message.From),
+			// message.Message.ReplyToMessage.ForumTopicClosed.Name,
+		)
+	}
+
+	if message.Message.ForwardOrigin != nil {
+		return fmt.Sprintf(
+			"F from %d (%s): %s",
+			message.Message.From.ID,
+			getUserDataFromMessage(message.Message.From),
+			message.Message.Text,
+		)
+	}
+
+	if message.Message.LeftChatMember != nil {
+		return fmt.Sprintf(
+			"LCM %d from %d (%s)",
+			message.Message.LeftChatMember.ID,
+			message.Message.Chat.ID,
+			getUserDataFromMessage(message.Message.LeftChatMember),
+		)
+	}
+
+	if message.Message.NewChatMembers != nil {
+		return fmt.Sprintf(
+			"NCM %d from %d (%s)",
+			message.Message.NewChatMembers[0].ID,
+			message.Message.Chat.ID,
+			getUserDataFromMessage(&message.Message.NewChatMembers[0]),
 		)
 	}
 
