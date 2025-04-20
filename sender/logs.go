@@ -72,11 +72,23 @@ func formatMessageForLog(message *bm.Update) string {
 	}
 
 	if message.Message.ForumTopicEdited != nil {
+		updatedName := ""
+
+		if message.Message.ReplyToMessage != nil && message.Message.ReplyToMessage.ForumTopicCreated != nil {
+			updatedName = message.Message.ReplyToMessage.ForumTopicCreated.Name
+		}
+
+		if message.Message.ForumTopicEdited != nil && updatedName != "" && message.Message.ForumTopicEdited.Name != updatedName {
+			updatedName = fmt.Sprintf("%s (was %s)", message.Message.ForumTopicEdited.Name, updatedName)
+		} else if message.Message.ForumTopicEdited != nil && updatedName == "" && message.Message.ForumTopicEdited.Name != updatedName {
+			updatedName = fmt.Sprintf("General updated to %s", message.Message.ForumTopicEdited.Name)
+		}
+
 		return fmt.Sprintf(
-			"M from %d (%s): Forum topic %q edited",
+			"M from %d (%s): Forum topic %s edited",
 			message.Message.From.ID,
 			getUserDataFromMessage(message.Message.From),
-			message.Message.ReplyToMessage.ForumTopicCreated.Name,
+			updatedName,
 		)
 	}
 

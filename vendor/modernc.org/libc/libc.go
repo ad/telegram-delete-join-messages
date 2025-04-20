@@ -4,11 +4,9 @@
 
 //go:build !linux || mips64le
 
-//go.generate echo package libc > ccgo.go
-//go:generate go fmt ./...
-
-// Package libc provides run time support for ccgo generated programs and
-// implements selected parts of the C standard library.
+// go.generate echo package libc > ccgo.go
+//
+//go:generate go fmt -l -s -w ./...
 package libc // import "modernc.org/libc"
 
 //TODO use O_RDONLY etc. from fcntl header
@@ -722,7 +720,12 @@ func X__builtin_object_size(t *TLS, p uintptr, typ int32) types.Size_t {
 	if __ccgo_strace {
 		trc("t=%v p=%v typ=%v, (%v:)", t, p, typ, origin(2))
 	}
-	return ^types.Size_t(0) //TODO frontend magic
+	switch typ {
+	case 0, 1:
+		return ^types.Size_t(0)
+	default:
+		return 0
+	}
 }
 
 var atomicLoadStore16 sync.Mutex
