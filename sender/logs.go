@@ -257,26 +257,24 @@ func formatChatMemberForLog(message *bm.Update) string {
 	messageElements := []string{}
 
 	if message.ChatMember.From.ID != 0 {
-		messageElements = append(messageElements, fmt.Sprintf("From: %d (%s)", message.ChatMember.From.ID, getUserDataFromMessage(&message.ChatMember.From)))
+		messageElements = append(messageElements, fmt.Sprintf("id%d (%s)", message.ChatMember.From.ID, getUserDataFromMessage(&message.ChatMember.From)))
 	}
+
+	if message.ChatMember.ViaJoinRequest {
+		messageElements = append(messageElements, fmt.Sprintf("Via JoinRequest: %t", message.ChatMember.ViaJoinRequest))
+	}
+
+	if message.ChatMember.ViaChatFolderInviteLink {
+		messageElements = append(messageElements, fmt.Sprintf("Via ChatFolderInviteLink: %t", message.ChatMember.ViaChatFolderInviteLink))
+	}
+
 	if message.ChatMember.InviteLink != nil {
 		messageElements = append(messageElements, fmt.Sprintf("InviteLink: %s", message.ChatMember.InviteLink.InviteLink))
 	}
-	if message.ChatMember.ViaJoinRequest {
-		messageElements = append(messageElements, fmt.Sprintf("ViaJoinRequest: %t", message.ChatMember.ViaJoinRequest))
-	}
-	if message.ChatMember.ViaChatFolderInviteLink {
-		messageElements = append(messageElements, fmt.Sprintf("ViaChatFolderInviteLink: %t", message.ChatMember.ViaChatFolderInviteLink))
-	}
 
 	if message.ChatMember.OldChatMember.Type != "" && message.ChatMember.NewChatMember.Type != "" {
-		messageElements = append(messageElements, fmt.Sprintf("Old: %s", message.ChatMember.OldChatMember.Type))
-		messageElements = append(messageElements, fmt.Sprintf("New: %s", message.ChatMember.NewChatMember.Type))
+		messageElements = append(messageElements, fmt.Sprintf("%s -> %s", message.ChatMember.OldChatMember.Type, message.ChatMember.NewChatMember.Type))
 	}
 
-	if len(messageElements) == 0 {
-		return fmt.Sprintf("CMU: %+v", message.ChatMember)
-	}
-
-	return fmt.Sprintf("CMU: %s", strings.Join(messageElements, ", "))
+	return fmt.Sprintf("CMU: %s (%+v)", strings.Join(messageElements, ", "), message.ChatMember)
 }
