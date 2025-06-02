@@ -23,6 +23,8 @@ func formatUpdateForLog(message *bm.Update) string {
 		return formatCallbackQueryForLog(message)
 	case message.ChatJoinRequest != nil:
 		return formatChatJoinRequestForLog(message)
+	case message.ChatMember != nil:
+		return formatChatMemberForLog(message)
 	}
 	// jsonData, _ := json.Marshal(message)
 	// s.lgr.Debug(fmt.Sprintf("Message %s", string(jsonData)))
@@ -249,4 +251,32 @@ func getUserDataFromMessage(user *bm.User) string {
 		return "Unknown"
 	}
 	return strings.Join(fields, " ")
+}
+
+func formatChatMemberForLog(message *bm.Update) string {
+	messageElements := []string{}
+
+	if message.ChatMember.From.ID != 0 {
+		messageElements = append(messageElements, fmt.Sprintf("From: %d (%s)", message.ChatMember.From.ID, getUserDataFromMessage(&message.ChatMember.From)))
+	}
+	if message.ChatMember.InviteLink != nil {
+		messageElements = append(messageElements, fmt.Sprintf("InviteLink: %s", message.ChatMember.InviteLink.InviteLink))
+	}
+	if message.ChatMember.ViaJoinRequest {
+		messageElements = append(messageElements, fmt.Sprintf("ViaJoinRequest: %t", message.ChatMember.ViaJoinRequest))
+	}
+	if message.ChatMember.ViaChatFolderInviteLink {
+		messageElements = append(messageElements, fmt.Sprintf("ViaChatFolderInviteLink: %t", message.ChatMember.ViaChatFolderInviteLink))
+	}
+
+	if message.ChatMember.OldChatMember.Type != "" && message.ChatMember.NewChatMember.Type != "" {
+		messageElements = append(messageElements, fmt.Sprintf("Old: %s", message.ChatMember.OldChatMember.Type))
+		messageElements = append(messageElements, fmt.Sprintf("New: %s", message.ChatMember.NewChatMember.Type))
+	}
+
+	if len(messageElements) == 0 {
+		return fmt.Sprintf("CMU: %+v", message.ChatMember)
+	}
+
+	return fmt.Sprintf("CMU: %s", strings.Join(messageElements, ", "))
 }
