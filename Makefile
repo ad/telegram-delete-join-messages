@@ -6,7 +6,7 @@ REPO=danielapatin/telegram-delete-join-messages
 .PHONY: build publish
 
 build:
-	@BUILD_VERSION=$(BUILD_VERSION) KO_DOCKER_REPO=$(REPO) ko build . --bare --local --sbom=none --tags="$(BUILD_VERSION),latest"
+	@BUILD_VERSION=$(BUILD_VERSION) KO_DOCKER_REPO=$(REPO) ko build . --base-import-paths --local --sbom=none --tags="$(BUILD_VERSION),latest"
 
 publish:
 	@BUILD_VERSION=$(BUILD_VERSION) KO_DOCKER_REPO=$(REPO) ko publish . --bare --sbom=none --tags="$(BUILD_VERSION),latest"
