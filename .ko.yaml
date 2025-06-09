@@ -4,7 +4,7 @@ defaultPlatforms:
 
 builds:
 - id: telegram-delete-join-messages
-  main: .
+  main: ./cmd/telegram-delete-join-messages
   ldflags:
   - "-s"
   - "-w"

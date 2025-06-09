@@ -14,4 +14,4 @@ spec:
     spec:
       containers:
         - name: telegram-delete-join-messages
-          image: ko://.
+          image: ko://./cmd/telegram-delete-join-messages
