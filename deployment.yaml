@@ -1,0 +1,17 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: telegram-delete-join-messages
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: telegram-delete-join-messages
+  template:
+    metadata:
+      labels:
+        app: telegram-delete-join-messages
+    spec:
+      containers:
+        - name: telegram-delete-join-messages
+          image: ko://.

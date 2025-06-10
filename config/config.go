@@ -116,6 +116,10 @@ func InitConfig(args []string) (*Config, error) {
 		}
 	}
 
+	if config.TelegramToken == "" {
+		return nil, fmt.Errorf("TELEGRAM_TOKEN is required")
+	}
+
 	if config.TelegramAdminIDs != "" {
 		chatIDS := strings.Split(config.TelegramAdminIDs, ",")
 		for _, chatID := range chatIDS {
