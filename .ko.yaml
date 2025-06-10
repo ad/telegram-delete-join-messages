@@ -1,7 +1,6 @@
-defaultBaseImage: gcr.io/distroless/static:nonroot
+defaultBaseImage: registry.hub.docker.com/hassioaddons/base-aarch64:8.0.6
 defaultPlatforms:
 - linux/arm64
-
 builds:
 - id: telegram-delete-join-messages
   main: .
