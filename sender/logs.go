@@ -33,49 +33,66 @@ func formatUpdateForLog(message *bm.Update) string {
 }
 
 func formatMessageForLog(message *bm.Update) string {
+	if message == nil || message.Message == nil {
+		return "<nil message>"
+	}
+
 	if message.Message.Chat.Type == "private" {
 		if message.Message.Caption != "" {
+			if message.Message.From != nil {
+				return fmt.Sprintf(
+					"PM from %d (%s): Photo with message: %s",
+					message.Message.From.ID,
+					getUserDataFromMessage(message.Message.From),
+					message.Message.Caption,
+				)
+			}
+			return fmt.Sprintf("PM: Photo with message: %s", message.Message.Caption)
+		}
+		return fmt.Sprintf("PM from %d (%s): %s", message.Message.Chat.ID, getChatDataFromMessage(&message.Message.Chat), message.Message.Text)
+	}
+
+	if message.Message.Caption != "" {
+		if message.Message.From != nil {
 			return fmt.Sprintf(
-				"PM from %d (%s): Photo with message: %s",
+				"M from %d (%s): Photo with message: %s",
 				message.Message.From.ID,
 				getUserDataFromMessage(message.Message.From),
 				message.Message.Caption,
 			)
 		}
-
-		return fmt.Sprintf("PM from %d (%s): %s", message.Message.Chat.ID, getChatDataFromMessage(&message.Message.Chat), message.Message.Text)
-	}
-
-	if message.Message.Caption != "" {
-		return fmt.Sprintf(
-			"M from %d (%s): Photo with message: %s",
-			message.Message.From.ID,
-			getUserDataFromMessage(message.Message.From),
-			message.Message.Caption,
-		)
+		return fmt.Sprintf("M: Photo with message: %s", message.Message.Caption)
 	}
 
 	if message.Message.ForumTopicCreated != nil {
-		return fmt.Sprintf(
-			"M from %d (%s): Forum topic %q created",
-			message.Message.From.ID,
-			getUserDataFromMessage(message.Message.From),
-			message.Message.ReplyToMessage.ForumTopicCreated.Name,
-		)
+		name := ""
+		if message.Message.ReplyToMessage != nil && message.Message.ReplyToMessage.ForumTopicCreated != nil {
+			name = message.Message.ReplyToMessage.ForumTopicCreated.Name
+		}
+		if message.Message.From != nil {
+			return fmt.Sprintf(
+				"M from %d (%s): Forum topic %q created",
+				message.Message.From.ID,
+				getUserDataFromMessage(message.Message.From),
+				name,
+			)
+		}
+		return fmt.Sprintf("M: Forum topic %q created", name)
 	}
 
 	if message.Message.ForumTopicReopened != nil {
-		return fmt.Sprintf(
-			"M from %d (%s): Forum topic reopened",
-			message.Message.From.ID,
-			getUserDataFromMessage(message.Message.From),
-			// message.Message.ReplyToMessage.ForumTopicReopened.Name,
-		)
+		if message.Message.From != nil {
+			return fmt.Sprintf(
+				"M from %d (%s): Forum topic reopened",
+				message.Message.From.ID,
+				getUserDataFromMessage(message.Message.From),
+			)
+		}
+		return "M: Forum topic reopened"
 	}
 
 	if message.Message.ForumTopicEdited != nil {
 		updatedName := ""
-
 		if message.Message.ReplyToMessage != nil && message.Message.ReplyToMessage.ForumTopicCreated != nil {
 			updatedName = message.Message.ReplyToMessage.ForumTopicCreated.Name
 		}
