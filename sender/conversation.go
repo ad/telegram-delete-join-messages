@@ -7,6 +7,7 @@ import (
 	"log"
 	"slices"
 	"strings"
+	"sync"
 
 	"github.com/ad/telegram-delete-join-messages/config"
 	"github.com/ad/telegram-delete-join-messages/data"
@@ -20,6 +21,7 @@ const (
 
 // ConversationHandler is a structure that manages conversation functions.
 type ConversationHandler struct {
+	mutex          sync.RWMutex            // mutex for thread-safe map access
 	active         map[int]bool            // a flag indicating whether the conversation is active
 	currentStageId map[int]int             // the identifier of the active conversation stage
 	stages         map[int]bot.HandlerFunc // a map of conversation stages
@@ -36,6 +38,9 @@ func NewConversationHandler() *ConversationHandler {
 
 // AddStage adds a conversation stage to the ConversationHandler.
 func (c *ConversationHandler) AddStage(stageId int, hf bot.HandlerFunc) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
 	c.stages[stageId] = hf
 }
 
@@ -44,6 +49,9 @@ func (c *ConversationHandler) AddStage(stageId int, hf bot.HandlerFunc) {
 // it will not process it, so the stageId is not checked.
 // if stageId <= len(c.stages)
 func (c *ConversationHandler) SetActiveStage(stageId int, userID int) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
 	if a, ok := c.active[userID]; !ok || !a {
 		c.active[userID] = true
 	}
@@ -52,6 +60,9 @@ func (c *ConversationHandler) SetActiveStage(stageId int, userID int) {
 }
 
 func (c *ConversationHandler) GetActiveStage(userID int) int {
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+
 	if _, ok := c.active[userID]; ok {
 		return c.currentStageId[userID]
 	}
@@ -60,6 +71,9 @@ func (c *ConversationHandler) GetActiveStage(userID int) int {
 }
 
 func (c *ConversationHandler) GetStagesCount() int {
+	c.mutex.RLock()
+	defer c.mutex.RUnlock()
+
 	return len(c.stages)
 }
 
@@ -74,18 +88,27 @@ func (c *ConversationHandler) CallStage(ctx context.Context, b *bot.Bot, update 
 		return
 	}
 
-	if _, ok := c.active[int(update.Message.From.ID)]; ok {
+	c.mutex.RLock()
+	userID := int(update.Message.From.ID)
+	if _, ok := c.active[userID]; ok {
 		// hf = HandlerFunction
-		if hf, ok := c.stages[c.currentStageId[int(update.Message.From.ID)]]; ok {
+		if hf, ok := c.stages[c.currentStageId[userID]]; ok {
+			c.mutex.RUnlock()
 			hf(ctx, b, update)
 		} else {
+			c.mutex.RUnlock()
 			log.Println("Error: Invalid stage id. No matching function found for the current stage id.")
 		}
+	} else {
+		c.mutex.RUnlock()
 	}
 }
 
 // End ends the conversation.
 func (c *ConversationHandler) End(userID int) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
 	c.active[userID] = false
 }
 
