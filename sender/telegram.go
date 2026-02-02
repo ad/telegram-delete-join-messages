@@ -121,6 +121,46 @@ func (s *Sender) handler(ctx context.Context, b *bot.Bot, update *models.Update)
 		return
 	}
 
+	if update.MyChatMember != nil {
+		if (update.MyChatMember.NewChatMember.Type == models.ChatMemberTypeMember ||
+			update.MyChatMember.NewChatMember.Type == models.ChatMemberTypeAdministrator) &&
+			(update.MyChatMember.OldChatMember.Type == models.ChatMemberTypeLeft ||
+				update.MyChatMember.OldChatMember.Type == models.ChatMemberTypeBanned) {
+			s.lgr.Info(fmt.Sprintf("Bot added to group: %d", update.MyChatMember.Chat.ID))
+			go s.notifyAdminsBotAddedToGroup(ctx, &update.MyChatMember.Chat)
+		}
+	}
+
+	if update.ChatMember != nil {
+		if update.ChatMember.NewChatMember.Type == models.ChatMemberTypeMember &&
+			(update.ChatMember.OldChatMember.Type == models.ChatMemberTypeLeft ||
+				update.ChatMember.OldChatMember.Type == models.ChatMemberTypeBanned ||
+				update.ChatMember.OldChatMember.Type == models.ChatMemberTypeRestricted) {
+			var user *models.User
+			if update.ChatMember.NewChatMember.Member != nil {
+				user = update.ChatMember.NewChatMember.Member.User
+			}
+			if user != nil {
+				s.lgr.Info(fmt.Sprintf("User joined the group: %d", user.ID))
+				go s.notifyAdminsUserJoined(ctx, user, update.ChatMember.Chat.ID)
+			}
+		}
+
+		if update.ChatMember.NewChatMember.Type == models.ChatMemberTypeLeft &&
+			(update.ChatMember.OldChatMember.Type == models.ChatMemberTypeMember ||
+				update.ChatMember.OldChatMember.Type == models.ChatMemberTypeRestricted ||
+				update.ChatMember.OldChatMember.Type == models.ChatMemberTypeAdministrator) {
+			var user *models.User
+			if update.ChatMember.NewChatMember.Left != nil {
+				user = update.ChatMember.NewChatMember.Left.User
+			}
+			if user != nil {
+				s.lgr.Info(fmt.Sprintf("User left the group: %d", user.ID))
+				go s.notifyAdminsUserLeft(ctx, user, update.ChatMember.Chat.ID)
+			}
+		}
+	}
+
 	if s.config.RestictOnJoin && update.Message != nil && update.Message.NewChatMembers != nil {
 		s.lgr.Info(fmt.Sprintf("Restrict users %#v", update.Message.NewChatMembers))
 

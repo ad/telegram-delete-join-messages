@@ -16,6 +16,8 @@ func (s *Sender) HandleChatJoinRequest(ctx context.Context, b *bot.Bot, update *
 	chatID := update.ChatJoinRequest.Chat.ID
 	fromID := update.ChatJoinRequest.From.ID
 
+	go s.notifyAdminsJoinRequest(ctx, &update.ChatJoinRequest.From, chatID)
+
 	vote, err := data.CheckVote(s.DB, fromID, fromID)
 	if err != nil && err != sql.ErrNoRows {
 		return
@@ -71,4 +73,128 @@ func (s *Sender) HandleChatJoinRequest(ctx context.Context, b *bot.Bot, update *
 	}
 
 	fmt.Println("user join request declined", fromID)
+}
+
+func (s *Sender) notifyAdminsJoinRequest(ctx context.Context, user *models.User, chatID int64) {
+	if len(s.config.TelegramAdminIDsList) == 0 {
+		return
+	}
+
+	vote, err := data.CheckVote(s.DB, user.ID, user.ID)
+	if err != nil && err != sql.ErrNoRows {
+		s.lgr.Error(fmt.Sprintf("notifyAdminsJoinRequest CheckVote error: %s", err.Error()))
+	}
+
+	message := fmt.Sprintf("📝 Новая заявка на вступление\n\n"+
+		"ID: %d\n"+
+		"Username: @%s\n"+
+		"Имя: %s\n"+
+		"Фамилия: %s\n"+
+		"Vote: %d",
+		user.ID,
+		user.Username,
+		user.FirstName,
+		user.LastName,
+		vote,
+	)
+
+	for _, adminID := range s.config.TelegramAdminIDsList {
+		s.MakeRequestDeferred(DeferredMessage{
+			Method: "sendMessage",
+			ChatID: adminID,
+			Text:   message,
+		}, s.SendResult)
+	}
+}
+
+func (s *Sender) notifyAdminsUserJoined(ctx context.Context, user *models.User, chatID int64) {
+	if len(s.config.TelegramAdminIDsList) == 0 {
+		return
+	}
+
+	vote, err := data.CheckVote(s.DB, user.ID, user.ID)
+	if err != nil && err != sql.ErrNoRows {
+		s.lgr.Error(fmt.Sprintf("notifyAdminsUserJoined CheckVote error: %s", err.Error()))
+	}
+
+	message := fmt.Sprintf("✅ Пользователь присоединился к группе\n\n"+
+		"ID: %d\n"+
+		"Username: @%s\n"+
+		"Имя: %s\n"+
+		"Фамилия: %s\n"+
+		"Vote: %d",
+		user.ID,
+		user.Username,
+		user.FirstName,
+		user.LastName,
+		vote,
+	)
+
+	for _, adminID := range s.config.TelegramAdminIDsList {
+		s.MakeRequestDeferred(DeferredMessage{
+			Method: "sendMessage",
+			ChatID: adminID,
+			Text:   message,
+		}, s.SendResult)
+	}
+}
+
+func (s *Sender) notifyAdminsUserLeft(ctx context.Context, user *models.User, chatID int64) {
+	if len(s.config.TelegramAdminIDsList) == 0 {
+		return
+	}
+
+	vote, err := data.CheckVote(s.DB, user.ID, user.ID)
+	if err != nil && err != sql.ErrNoRows {
+		s.lgr.Error(fmt.Sprintf("notifyAdminsUserLeft CheckVote error: %s", err.Error()))
+	}
+
+	message := fmt.Sprintf("👋 Пользователь вышел из группы\n\n"+
+		"ID: %d\n"+
+		"Username: @%s\n"+
+		"Имя: %s\n"+
+		"Фамилия: %s\n"+
+		"Vote: %d",
+		user.ID,
+		user.Username,
+		user.FirstName,
+		user.LastName,
+		vote,
+	)
+
+	for _, adminID := range s.config.TelegramAdminIDsList {
+		s.MakeRequestDeferred(DeferredMessage{
+			Method: "sendMessage",
+			ChatID: adminID,
+			Text:   message,
+		}, s.SendResult)
+	}
+}
+
+func (s *Sender) notifyAdminsBotAddedToGroup(ctx context.Context, chat *models.Chat) {
+	if len(s.config.TelegramAdminIDsList) == 0 {
+		return
+	}
+
+	forumEnabled := "Нет"
+	if chat.IsForum {
+		forumEnabled = "Да"
+	}
+
+	message := fmt.Sprintf("🤖 Бот добавлен в группу\n\n"+
+		"ID: %d\n"+
+		"Название: %s\n"+
+		"Форум: %s",
+		chat.ID,
+		chat.Title,
+		forumEnabled,
+	)
+
+	for _, adminID := range s.config.TelegramAdminIDsList {
+		s.MakeRequestDeferred(DeferredMessage{
+			Method: "sendMessage",
+			ChatID: adminID,
+			Text:   message,
+		}, s.SendResult)
+	}
 }

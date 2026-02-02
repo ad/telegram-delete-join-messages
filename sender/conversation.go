@@ -223,7 +223,7 @@ func (s *Sender) stageHandler(ctx context.Context, b *bot.Bot, update *models.Up
 			s.convHandler.End(int(update.Message.From.ID)) // end the conversation
 		}
 	} else {
-		s.convHandler.SetActiveStage(currentStageId+1, int(update.Message.From.ID)) //change stage
+		s.convHandler.SetActiveStage(currentStageId+1, int(update.Message.From.ID))
 
 		_, errSendMessage := b.SendMessage(ctx, &bot.SendMessageParams{
 			ChatID: update.Message.Chat.ID,
@@ -232,6 +232,21 @@ func (s *Sender) stageHandler(ctx context.Context, b *bot.Bot, update *models.Up
 
 		if errSendMessage != nil {
 			fmt.Println("errSendMessage (/tower): ", errSendMessage)
+		}
+
+		nextConversation, err := s.GetConversationById(currentStageId + 1)
+		if err != nil {
+			fmt.Println("errGetConversation (next stage): ", err)
+			return
+		}
+
+		_, errSendNextMessage := b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: update.Message.Chat.ID,
+			Text:   nextConversation.Question,
+		})
+
+		if errSendNextMessage != nil {
+			fmt.Println("errSendMessage (next question): ", errSendNextMessage)
 		}
 	}
 }
