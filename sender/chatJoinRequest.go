@@ -215,13 +215,13 @@ func buildData(user *models.User, vote int) string {
 	nameStr := ""
 
 	if user.FirstName != "" {
-		nameStr = fmt.Sprintf("Имя: @%s\n", user.FirstName)
+		nameStr = fmt.Sprintf("Имя: %s\n", user.FirstName)
 	}
 
 	surnameStr := ""
 
 	if user.LastName != "" {
-		surnameStr = fmt.Sprintf("Фамилия: @%s\n", user.LastName)
+		surnameStr = fmt.Sprintf("Фамилия: %s\n", user.LastName)
 	}
 
 	voteStr := ""
