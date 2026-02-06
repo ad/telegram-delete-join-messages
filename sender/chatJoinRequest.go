@@ -41,6 +41,8 @@ func (s *Sender) HandleChatJoinRequest(ctx context.Context, b *bot.Bot, update *
 
 		if errApproveChatJoinRequest != nil {
 			fmt.Println("errApproveChatJoinRequest: ", errApproveChatJoinRequest, "for", fromID)
+		} else {
+			s.notifyAdminsJoinApprove(ctx, &update.ChatJoinRequest.From, chatID)
 		}
 
 		return
@@ -75,7 +77,7 @@ func (s *Sender) HandleChatJoinRequest(ctx context.Context, b *bot.Bot, update *
 	fmt.Println("user join request declined", fromID)
 }
 
-func (s *Sender) notifyAdminsJoinRequest(ctx context.Context, user *models.User, chatID int64) {
+func (s *Sender) notifyAdminsJoinRequest(_ context.Context, user *models.User, _ int64) {
 	if len(s.config.TelegramAdminIDsList) == 0 {
 		return
 	}
@@ -86,16 +88,9 @@ func (s *Sender) notifyAdminsJoinRequest(ctx context.Context, user *models.User,
 	}
 
 	message := fmt.Sprintf("📝 Новая заявка на вступление\n\n"+
-		"ID: %d\n"+
-		"Username: @%s\n"+
-		"Имя: %s\n"+
-		"Фамилия: %s\n"+
-		"Vote: %d",
+		"ID: %d\n%s",
 		user.ID,
-		user.Username,
-		user.FirstName,
-		user.LastName,
-		vote,
+		buildData(user, vote),
 	)
 
 	for _, adminID := range s.config.TelegramAdminIDsList {
@@ -107,7 +102,32 @@ func (s *Sender) notifyAdminsJoinRequest(ctx context.Context, user *models.User,
 	}
 }
 
-func (s *Sender) notifyAdminsUserJoined(ctx context.Context, user *models.User, chatID int64) {
+func (s *Sender) notifyAdminsJoinApprove(_ context.Context, user *models.User, _ int64) {
+	if len(s.config.TelegramAdminIDsList) == 0 {
+		return
+	}
+
+	vote, err := data.CheckVote(s.DB, user.ID, user.ID)
+	if err != nil && err != sql.ErrNoRows {
+		s.lgr.Error(fmt.Sprintf("notifyAdminsJoinRequest CheckVote error: %s", err.Error()))
+	}
+
+	message := fmt.Sprintf("✅ Пользователь добавлен в группу\n\n"+
+		"ID: %d\n%s",
+		user.ID,
+		buildData(user, vote),
+	)
+
+	for _, adminID := range s.config.TelegramAdminIDsList {
+		s.MakeRequestDeferred(DeferredMessage{
+			Method: "sendMessage",
+			ChatID: adminID,
+			Text:   message,
+		}, s.SendResult)
+	}
+}
+
+func (s *Sender) notifyAdminsUserJoined(_ context.Context, user *models.User, _ int64) {
 	if len(s.config.TelegramAdminIDsList) == 0 {
 		return
 	}
@@ -118,16 +138,9 @@ func (s *Sender) notifyAdminsUserJoined(ctx context.Context, user *models.User, 
 	}
 
 	message := fmt.Sprintf("✅ Пользователь присоединился к группе\n\n"+
-		"ID: %d\n"+
-		"Username: @%s\n"+
-		"Имя: %s\n"+
-		"Фамилия: %s\n"+
-		"Vote: %d",
+		"ID: %d\n%s",
 		user.ID,
-		user.Username,
-		user.FirstName,
-		user.LastName,
-		vote,
+		buildData(user, vote),
 	)
 
 	for _, adminID := range s.config.TelegramAdminIDsList {
@@ -139,7 +152,7 @@ func (s *Sender) notifyAdminsUserJoined(ctx context.Context, user *models.User, 
 	}
 }
 
-func (s *Sender) notifyAdminsUserLeft(ctx context.Context, user *models.User, chatID int64) {
+func (s *Sender) notifyAdminsUserLeft(_ context.Context, user *models.User, _ int64) {
 	if len(s.config.TelegramAdminIDsList) == 0 {
 		return
 	}
@@ -150,16 +163,9 @@ func (s *Sender) notifyAdminsUserLeft(ctx context.Context, user *models.User, ch
 	}
 
 	message := fmt.Sprintf("👋 Пользователь вышел из группы\n\n"+
-		"ID: %d\n"+
-		"Username: @%s\n"+
-		"Имя: %s\n"+
-		"Фамилия: %s\n"+
-		"Vote: %d",
+		"ID: %d\n%s",
 		user.ID,
-		user.Username,
-		user.FirstName,
-		user.LastName,
-		vote,
+		buildData(user, vote),
 	)
 
 	for _, adminID := range s.config.TelegramAdminIDsList {
@@ -171,7 +177,7 @@ func (s *Sender) notifyAdminsUserLeft(ctx context.Context, user *models.User, ch
 	}
 }
 
-func (s *Sender) notifyAdminsBotAddedToGroup(ctx context.Context, chat *models.Chat) {
+func (s *Sender) notifyAdminsBotAddedToGroup(_ context.Context, chat *models.Chat) {
 	if len(s.config.TelegramAdminIDsList) == 0 {
 		return
 	}
@@ -197,4 +203,32 @@ func (s *Sender) notifyAdminsBotAddedToGroup(ctx context.Context, chat *models.C
 			Text:   message,
 		}, s.SendResult)
 	}
+}
+
+func buildData(user *models.User, vote int) string {
+	usernameStr := ""
+
+	if user.Username != "" {
+		usernameStr = fmt.Sprintf("Username: @%s\n", user.Username)
+	}
+
+	nameStr := ""
+
+	if user.FirstName != "" {
+		nameStr = fmt.Sprintf("Имя: @%s\n", user.FirstName)
+	}
+
+	surnameStr := ""
+
+	if user.LastName != "" {
+		surnameStr = fmt.Sprintf("Фамилия: @%s\n", user.LastName)
+	}
+
+	voteStr := ""
+
+	if vote > 0 {
+		voteStr = fmt.Sprintf("Vote: %d\n", vote)
+	}
+
+	return fmt.Sprintf("%s%s%s%s", usernameStr, nameStr, surnameStr, voteStr)
 }
