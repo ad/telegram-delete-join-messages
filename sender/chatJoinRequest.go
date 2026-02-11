@@ -4,11 +4,24 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"regexp"
+	"strconv"
+	"strings"
 
 	"github.com/ad/telegram-delete-join-messages/data"
 	"github.com/go-telegram/bot"
 	"github.com/go-telegram/bot/models"
 )
+
+var adminNotificationPrefixes = []string{
+	"📝 Новая заявка на вступление",
+	"✅ Пользователь добавлен в группу",
+	"🎉 Пользователь присоединился к группе",
+	"👋 Пользователь вышел из группы",
+	"📨 ЛС от пользователя",
+}
+
+var adminNotificationUserIDPattern = regexp.MustCompile(`(?m)^ID:\s*(-?\d+)\b`)
 
 func (s *Sender) HandleChatJoinRequest(ctx context.Context, b *bot.Bot, update *models.Update) {
 	fmt.Println(formatUpdateForLog(update), update.ChatJoinRequest.Bio)
@@ -231,4 +244,43 @@ func buildData(user *models.User, vote int) string {
 	}
 
 	return fmt.Sprintf("%s%s%s%s", usernameStr, nameStr, surnameStr, voteStr)
+}
+
+func extractUserIDFromAdminNotification(message *models.Message) (int64, bool) {
+	if message == nil {
+		return 0, false
+	}
+
+	text := message.Text
+	if text == "" {
+		text = message.Caption
+	}
+
+	if text == "" {
+		return 0, false
+	}
+
+	isAdminNotification := false
+	for _, prefix := range adminNotificationPrefixes {
+		if strings.HasPrefix(text, prefix) {
+			isAdminNotification = true
+			break
+		}
+	}
+
+	if !isAdminNotification {
+		return 0, false
+	}
+
+	matches := adminNotificationUserIDPattern.FindStringSubmatch(text)
+	if len(matches) < 2 {
+		return 0, false
+	}
+
+	userID, err := strconv.ParseInt(matches[1], 10, 64)
+	if err != nil {
+		return 0, false
+	}
+
+	return userID, true
 }

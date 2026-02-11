@@ -24,6 +24,7 @@ type Sender struct {
 	Config           *conf.Config
 	deferredMessages map[int64]chan DeferredMessage
 	lastMessageTimes map[int64]int64
+	forwardTargets   map[int64]map[int64]int64
 	convHandler      *ConversationHandler
 }
 
@@ -35,6 +36,7 @@ func InitSender(lgr *slog.Logger, config *conf.Config, db *sql.DB) (*Sender, err
 		DB:               db,
 		deferredMessages: make(map[int64]chan DeferredMessage),
 		lastMessageTimes: make(map[int64]int64),
+		forwardTargets:   make(map[int64]map[int64]int64),
 	}
 
 	opts := []bot.Option{
@@ -160,6 +162,12 @@ func (s *Sender) handler(ctx context.Context, b *bot.Bot, update *models.Update)
 			}
 		}
 	}
+
+	if s.handleAdminReplyToNotification(ctx, b, update) {
+		return
+	}
+
+	s.relayVerifiedPrivateMessageToAdmins(update)
 
 	if s.config.RestictOnJoin && update.Message != nil && update.Message.NewChatMembers != nil {
 		s.lgr.Info(fmt.Sprintf("Restrict users %#v", update.Message.NewChatMembers))
