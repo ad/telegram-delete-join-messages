@@ -13,6 +13,21 @@ import (
 	"github.com/go-telegram/bot/models"
 )
 
+var restrictedPermissions = &models.ChatPermissions{
+	CanSendMessages:      false,
+	CanSendAudios:        false,
+	CanSendDocuments:     false,
+	CanSendPhotos:        false,
+	CanSendVideos:        false,
+	CanSendPolls:         false,
+	CanSendVideoNotes:    false,
+	CanSendVoiceNotes:    false,
+	CanSendOtherMessages: false,
+	CanPinMessages:       false,
+	CanManageTopics:      false,
+	CanChangeInfo:        false,
+}
+
 var adminNotificationPrefixes = []string{
 	"📝 Новая заявка на вступление",
 	"✅ Пользователь добавлен в группу",
@@ -58,6 +73,52 @@ func (s *Sender) HandleChatJoinRequest(ctx context.Context, b *bot.Bot, update *
 			s.notifyAdminsJoinApprove(ctx, &update.ChatJoinRequest.From, chatID)
 		}
 
+		return
+	}
+
+	if s.config.ConciergeMode {
+		_, errApproveChatJoinRequest := b.ApproveChatJoinRequest(
+			ctx,
+			&bot.ApproveChatJoinRequestParams{
+				ChatID: chatID,
+				UserID: fromID,
+			},
+		)
+		if errApproveChatJoinRequest != nil {
+			fmt.Println("errApproveChatJoinRequest (concierge): ", errApproveChatJoinRequest, "for", fromID)
+			return
+		}
+
+		_, errRestrict := b.RestrictChatMember(
+			ctx,
+			&bot.RestrictChatMemberParams{
+				ChatID:      chatID,
+				UserID:      fromID,
+				Permissions: restrictedPermissions,
+				UntilDate:   0,
+			},
+		)
+		if errRestrict != nil {
+			fmt.Println("errRestrictChatMember (concierge): ", errRestrict, "for", fromID)
+		}
+
+		s.convHandler.SetActiveStage(0, int(fromID))
+
+		conversation, errConv := s.GetConversationById(0)
+		if errConv != nil {
+			fmt.Println("errGetConversation (concierge): ", errConv)
+			return
+		}
+
+		_, errSendMessage := b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: fromID,
+			Text:   conversation.Question,
+		})
+		if errSendMessage != nil {
+			fmt.Println("errSendMessage (concierge): ", errSendMessage, "for", fromID)
+		}
+
+		fmt.Println("user join request approved with restrictions (concierge mode)", fromID)
 		return
 	}
 

@@ -38,6 +38,8 @@ type Config struct {
 	DB_PATH string `json:"DB_PATH"`
 
 	Debug bool `json:"DEBUG"`
+
+	ConciergeMode bool `json:"CONCIERGE_MODE"`
 }
 
 type Conversation struct {
@@ -100,6 +102,8 @@ func InitConfig(args []string) (*Config, error) {
 		flags.StringVar(&config.DB_PATH, "dbPath", lookupEnvOrString("DB_PATH", config.DB_PATH), "DB_PATH")
 
 		flags.BoolVar(&config.Debug, "debug", lookupEnvOrBool("DEBUG", config.Debug), "Debug")
+
+		flags.BoolVar(&config.ConciergeMode, "conciergeMode", lookupEnvOrBool("CONCIERGE_MODE", config.ConciergeMode), "CONCIERGE_MODE")
 
 		// get conversations from flags or env
 		var conversations string

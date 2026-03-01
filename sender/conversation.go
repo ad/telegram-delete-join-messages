@@ -8,6 +8,7 @@ import (
 	"slices"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/ad/telegram-delete-join-messages/config"
 	"github.com/ad/telegram-delete-join-messages/data"
@@ -267,6 +268,43 @@ func (s *Sender) lastStep(ctx context.Context, b *bot.Bot, update *models.Update
 		s.lgr.Info(fmt.Sprintf("roomHandler AddVote (%s): %s", userInput, err.Error()))
 
 		return false
+	}
+
+	if s.config.ConciergeMode && len(s.config.AllowedChatIDsList) > 0 {
+		groupID := s.config.AllowedChatIDsList[0]
+		_, errRestrict := b.RestrictChatMember(ctx, &bot.RestrictChatMemberParams{
+			ChatID: groupID,
+			UserID: update.Message.From.ID,
+			Permissions: &models.ChatPermissions{
+				CanSendMessages:      true,
+				CanSendAudios:        false,
+				CanSendDocuments:     true,
+				CanSendPhotos:        true,
+				CanSendVideos:        true,
+				CanSendPolls:         false,
+				CanSendVideoNotes:    false,
+				CanSendVoiceNotes:    false,
+				CanSendOtherMessages: true,
+				CanInviteUsers:       true,
+				CanPinMessages:       false,
+				CanManageTopics:      false,
+				CanChangeInfo:        false,
+			},
+			UntilDate: int(time.Now().Add(1 * time.Second).Unix()),
+		})
+		if errRestrict != nil {
+			fmt.Println("errUnrestrict (concierge): ", errRestrict)
+		}
+
+		_, errSendMessage := b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: update.Message.Chat.ID,
+			Text:   answer + "\n✅ Вы стали полноправным участником группы!",
+		})
+		if errSendMessage != nil {
+			fmt.Println("errSendMessage (concierge lastStep): ", errSendMessage)
+		}
+
+		return true
 	}
 
 	if s.config.InviteLink != "" {

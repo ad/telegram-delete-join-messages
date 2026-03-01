@@ -1,5 +1,5 @@
 {
-  "version": "0.7.7",
+  "version": "0.8.0",
   "name": "telegram-delete-join-messages",
   "slug": "telegram-delete-join-messages",
   "description": "",
@@ -12,6 +12,7 @@
   "options": {
     "TELEGRAM_TOKEN": "",
     "TELEGRAM_ADMIN_IDS": "",
+    "CONCIERGE_MODE": false,
     "DELETE_JOIN": true,
     "DELETE_LEAVE": true,
     "RESTRICT_ON_JOIN": false,
@@ -26,6 +27,7 @@
   "schema": {
     "TELEGRAM_TOKEN": "str",
     "TELEGRAM_ADMIN_IDS": "str",
+    "CONCIERGE_MODE": "bool",
     "DELETE_JOIN": "bool",
     "DELETE_LEAVE": "bool",
     "RESTRICT_ON_JOIN": "bool",
