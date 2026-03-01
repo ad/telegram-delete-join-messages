@@ -77,6 +77,24 @@ func (s *Sender) HandleChatJoinRequest(ctx context.Context, b *bot.Bot, update *
 	}
 
 	if s.config.ConciergeMode {
+		// Send message first while join request is still pending —
+		// Telegram allows the bot to DM the user at this moment even if they haven't started the bot.
+		s.convHandler.SetActiveStage(0, int(fromID))
+
+		conversation, errConv := s.GetConversationById(0)
+		if errConv != nil {
+			fmt.Println("errGetConversation (concierge): ", errConv)
+			return
+		}
+
+		_, errSendMessage := b.SendMessage(ctx, &bot.SendMessageParams{
+			ChatID: fromID,
+			Text:   conversation.Question,
+		})
+		if errSendMessage != nil {
+			fmt.Println("errSendMessage (concierge): ", errSendMessage, "for", fromID)
+		}
+
 		_, errApproveChatJoinRequest := b.ApproveChatJoinRequest(
 			ctx,
 			&bot.ApproveChatJoinRequestParams{
@@ -100,22 +118,6 @@ func (s *Sender) HandleChatJoinRequest(ctx context.Context, b *bot.Bot, update *
 		)
 		if errRestrict != nil {
 			fmt.Println("errRestrictChatMember (concierge): ", errRestrict, "for", fromID)
-		}
-
-		s.convHandler.SetActiveStage(0, int(fromID))
-
-		conversation, errConv := s.GetConversationById(0)
-		if errConv != nil {
-			fmt.Println("errGetConversation (concierge): ", errConv)
-			return
-		}
-
-		_, errSendMessage := b.SendMessage(ctx, &bot.SendMessageParams{
-			ChatID: fromID,
-			Text:   conversation.Question,
-		})
-		if errSendMessage != nil {
-			fmt.Println("errSendMessage (concierge): ", errSendMessage, "for", fromID)
 		}
 
 		fmt.Println("user join request approved with restrictions (concierge mode)", fromID)
