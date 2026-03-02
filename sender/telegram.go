@@ -134,13 +134,10 @@ func (s *Sender) handler(ctx context.Context, b *bot.Bot, update *models.Update)
 	}
 
 	if update.ChatMember != nil {
-		if update.ChatMember.NewChatMember.Type == models.ChatMemberTypeMember &&
-			(update.ChatMember.OldChatMember.Type == models.ChatMemberTypeLeft ||
-				update.ChatMember.OldChatMember.Type == models.ChatMemberTypeBanned ||
-				update.ChatMember.OldChatMember.Type == models.ChatMemberTypeRestricted) {
-			var user *models.User
-			if update.ChatMember.NewChatMember.Member != nil {
-				user = update.ChatMember.NewChatMember.Member.User
+		if didJoinGroup(update.ChatMember.OldChatMember, update.ChatMember.NewChatMember) {
+			user := userFromChatMember(update.ChatMember.NewChatMember)
+			if user == nil {
+				user = userFromChatMember(update.ChatMember.OldChatMember)
 			}
 			if user != nil {
 				s.lgr.Info(fmt.Sprintf("User joined the group: %d", user.ID))
@@ -148,13 +145,10 @@ func (s *Sender) handler(ctx context.Context, b *bot.Bot, update *models.Update)
 			}
 		}
 
-		if update.ChatMember.NewChatMember.Type == models.ChatMemberTypeLeft &&
-			(update.ChatMember.OldChatMember.Type == models.ChatMemberTypeMember ||
-				update.ChatMember.OldChatMember.Type == models.ChatMemberTypeRestricted ||
-				update.ChatMember.OldChatMember.Type == models.ChatMemberTypeAdministrator) {
-			var user *models.User
-			if update.ChatMember.NewChatMember.Left != nil {
-				user = update.ChatMember.NewChatMember.Left.User
+		if didLeaveGroup(update.ChatMember.OldChatMember, update.ChatMember.NewChatMember) {
+			user := userFromChatMember(update.ChatMember.NewChatMember)
+			if user == nil {
+				user = userFromChatMember(update.ChatMember.OldChatMember)
 			}
 			if user != nil {
 				s.lgr.Info(fmt.Sprintf("User left the group: %d", user.ID))
@@ -241,6 +235,56 @@ func (s *Sender) handler(ctx context.Context, b *bot.Bot, update *models.Update)
 
 		return
 	}
+}
+
+func didJoinGroup(oldMember, newMember models.ChatMember) bool {
+	return !isGroupMember(oldMember) && isGroupMember(newMember)
+}
+
+func didLeaveGroup(oldMember, newMember models.ChatMember) bool {
+	return isGroupMember(oldMember) && !isGroupMember(newMember)
+}
+
+func isGroupMember(member models.ChatMember) bool {
+	switch member.Type {
+	case models.ChatMemberTypeOwner, models.ChatMemberTypeAdministrator, models.ChatMemberTypeMember:
+		return true
+	case models.ChatMemberTypeRestricted:
+		return member.Restricted != nil && member.Restricted.IsMember
+	default:
+		return false
+	}
+}
+
+func userFromChatMember(member models.ChatMember) *models.User {
+	switch member.Type {
+	case models.ChatMemberTypeOwner:
+		if member.Owner != nil {
+			return member.Owner.User
+		}
+	case models.ChatMemberTypeAdministrator:
+		if member.Administrator != nil {
+			return &member.Administrator.User
+		}
+	case models.ChatMemberTypeMember:
+		if member.Member != nil {
+			return member.Member.User
+		}
+	case models.ChatMemberTypeRestricted:
+		if member.Restricted != nil {
+			return member.Restricted.User
+		}
+	case models.ChatMemberTypeLeft:
+		if member.Left != nil {
+			return member.Left.User
+		}
+	case models.ChatMemberTypeBanned:
+		if member.Banned != nil {
+			return member.Banned.User
+		}
+	}
+
+	return nil
 }
 
 // Handle /start command to start getting the user's tower
